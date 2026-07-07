@@ -3,128 +3,931 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autonomous Design — Bientôt disponible</title>
+  <title>Autonomous Design — Votre présence en ligne, de A à Z</title>
+  <meta name="description" content="Création de sites web, hébergement, maintenance, mises à jour et accompagnement digital pour les PME belges. Un seul interlocuteur, un service complet.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    img { display: block; max-width: 100%; }
+
+    :root {
+      --ink:      #0D0D0D;
+      --ink-2:    #181818;
+      --ink-3:    #242424;
+      --muted:    #666;
+      --light:    #F7F6F4;
+      --light-2:  #EEECEA;
+      --white:    #FFFFFF;
+      --gold:     #C09A52;
+      --gold-l:   #D4B472;
+      --gold-bg:  #F9F5EE;
+      --border:   rgba(255,255,255,0.08);
+      --border-l: rgba(0,0,0,0.07);
+      --font:     'Outfit', sans-serif;
+      --serif:    'Instrument Serif', serif;
+      --ease:     cubic-bezier(0.32,0.72,0,1);
+      --ease-out: cubic-bezier(0.16,1,0.3,1);
+    }
 
     body {
-      background: #0a0a0a;
-      color: #fff;
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 48px;
+      background: var(--white);
+      color: var(--ink);
+      font-family: var(--font);
+      font-weight: 300;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .brand {
-      font-size: 13px;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: #555;
+    /* ── SKIP ── */
+    .skip { position: absolute; top: -40px; left: 16px; z-index: 9999; background: var(--gold); color: var(--ink); padding: 8px 16px; font-size: 12px; text-decoration: none; transition: top .2s; }
+    .skip:focus { top: 16px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 200;
+      display: flex; align-items: center;
+      background: rgba(13,13,13,0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 10px 10px 10px 28px;
+      width: max-content;
+      gap: 0;
+    }
+    .nav-logo { display: flex; align-items: center; text-decoration: none; margin-right: 36px; }
+    .nav-logo img { height: 22px; filter: brightness(0) invert(1); }
+    .nav-links { display: flex; gap: 28px; list-style: none; margin-right: 28px; }
+    .nav-links a { font-size: 12px; letter-spacing: 0.04em; color: rgba(255,255,255,0.45); text-decoration: none; transition: color .2s; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta { background: var(--white); color: var(--ink); font-size: 12px; font-weight: 500; padding: 10px 22px; border-radius: 100px; text-decoration: none; transition: background .25s; display: flex; align-items: center; gap: 6px; }
+    .nav-cta:hover { background: var(--gold); }
+    .nav-cta::after { content: '↗'; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100svh;
+      position: relative;
+      display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: flex-end;
+      overflow: hidden;
+      background: var(--ink);
+    }
+    #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.5; }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(13,13,13,0.95) 0%, rgba(13,13,13,0.55) 60%, rgba(13,13,13,0.25) 100%);
+    }
+    .hero-watermark {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      z-index: 1; pointer-events: none; text-align: center;
+      opacity: 0; animation: fadeIn 1.4s var(--ease-out) .3s forwards;
+    }
+    .hero-watermark span {
+      display: block; font-family: var(--font); font-size: clamp(60px,10vw,140px);
+      font-weight: 700; letter-spacing: -0.02em; text-transform: uppercase;
+      color: rgba(255,255,255,0.035); line-height: 0.95; white-space: nowrap;
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      padding: 0 72px 90px; max-width: 740px;
+      opacity: 0; animation: fadeUp 1s var(--ease-out) .7s forwards;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 32px;
+    }
+    .hero-tag span { display: block; width: 28px; height: 1px; background: var(--gold); }
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(44px,5vw,72px);
+      font-weight: 400; line-height: 1.08;
+      color: #fff; margin-bottom: 24px;
+    }
+    .hero h1 em { font-style: italic; color: var(--gold-l); }
+    .hero-sub {
+      font-size: 16px; line-height: 1.8;
+      color: rgba(255,255,255,0.45);
+      max-width: 520px; margin-bottom: 48px;
+    }
+    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-w { background: #fff; color: var(--ink); font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 14px 32px; border-radius: 100px; text-decoration: none; transition: background .25s; }
+    .btn-w:hover { background: var(--gold); }
+    .btn-ghost { font-size: 12px; color: rgba(255,255,255,0.35); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: color .2s; padding: 14px 0; }
+    .btn-ghost:hover { color: #fff; }
+    .btn-ghost::after { content: '→'; }
+    .hero-kpis {
+      position: absolute; bottom: 90px; right: 72px; z-index: 2;
+      display: flex; gap: 48px;
+      opacity: 0; animation: fadeUp 1s var(--ease-out) 1.1s forwards;
+    }
+    .kpi { text-align: right; }
+    .kpi-n { font-family: var(--serif); font-size: 40px; color: #fff; line-height: 1; margin-bottom: 6px; }
+    .kpi-l { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.25); }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    /* ── TICKER ── */
+    .ticker { background: var(--gold); overflow: hidden; padding: 14px 0; white-space: nowrap; }
+    .ticker-track { display: inline-flex; animation: scrollL 32s linear infinite; }
+    .ticker-track span { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink); font-weight: 500; padding: 0 36px; }
+    .ticker-track span::before { content: '✦'; margin-right: 36px; opacity: 0.45; }
+    @keyframes scrollL { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+    /* ── SHARED SECTION ── */
+    section { padding: 128px 72px; }
+    .s-tag { font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; display: block; }
+    h2 { font-family: var(--serif); font-size: clamp(34px,3.5vw,54px); font-weight: 400; line-height: 1.15; color: var(--ink); margin-bottom: 24px; }
+    h2 em { font-style: italic; }
+    h2.light { color: #fff; }
+    .body-l { font-size: 15px; line-height: 1.85; color: var(--muted); max-width: 52ch; }
+    .bar { width: 40px; height: 2px; background: var(--gold); margin: 28px 0; }
+
+    /* ── PROBLEMS ── */
+    .problems { background: var(--light); padding: 128px 72px; }
+    .prob-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .prob-list { margin-top: 16px; }
+    .prob-item {
+      display: flex; align-items: flex-start; gap: 20px;
+      padding: 24px 0; border-bottom: 1px solid var(--light-2);
+      opacity: 0; transform: translateX(-16px);
+      transition: opacity .7s var(--ease-out), transform .7s var(--ease-out);
+    }
+    .prob-item.on { opacity: 1; transform: translateX(0); }
+    .prob-item:first-child { border-top: 1px solid var(--light-2); }
+    .prob-icon { font-size: 18px; margin-top: 2px; flex-shrink: 0; }
+    .prob-text h4 { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+    .prob-text p { font-size: 13px; line-height: 1.7; color: var(--muted); }
+    .prob-answer {
+      background: var(--ink); padding: 56px 52px;
+      align-self: center;
+    }
+    .prob-answer .s-tag { color: rgba(192,154,82,0.75); }
+    .prob-answer h2 { color: #fff; margin-bottom: 20px; }
+    .prob-answer p { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.45); margin-bottom: 32px; }
+    .btn-gold { display: inline-block; background: var(--gold); color: var(--ink); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 32px; text-decoration: none; border-radius: 4px; transition: background .25s; }
+    .btn-gold:hover { background: var(--gold-l); }
+
+    /* ── SERVICES ── */
+    .services { background: var(--white); }
+    .services-head { max-width: 600px; margin-bottom: 64px; }
+    .services-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; background: var(--light-2); }
+    .srv {
+      background: var(--white); padding: 52px 44px;
+      border: 1px solid transparent;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .srv:hover { border-color: rgba(192,154,82,0.25); box-shadow: 0 16px 48px rgba(0,0,0,0.05); }
+    .srv-icon { font-size: 28px; margin-bottom: 24px; display: block; }
+    .srv h3 { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--ink); margin-bottom: 16px; }
+    .srv-list { list-style: none; }
+    .srv-list li { font-size: 13px; line-height: 1.7; color: var(--muted); padding: 7px 0; border-bottom: 1px solid var(--light-2); display: flex; gap: 10px; }
+    .srv-list li:last-child { border-bottom: none; }
+    .srv-list li::before { content: '→'; color: var(--gold); flex-shrink: 0; }
+
+    /* ── PROCESS ── */
+    .process { background: var(--ink); padding: 128px 72px; }
+    .process-head { margin-bottom: 72px; }
+    .process-head .s-tag { color: rgba(192,154,82,0.75); }
+    .proc-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .proc-step {
+      padding: 52px 44px; position: relative;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: border-color .3s;
+    }
+    .proc-step:hover { border-color: rgba(192,154,82,0.2); }
+    .proc-num { font-family: var(--serif); font-size: 72px; font-weight: 400; color: rgba(255,255,255,0.04); line-height: 1; margin-bottom: 28px; }
+    .proc-badge { position: absolute; top: 32px; right: 32px; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(192,154,82,0.25); padding: 5px 12px; border-radius: 100px; }
+    .proc-step h3 { font-family: var(--serif); font-size: 22px; font-weight: 400; color: #fff; margin-bottom: 14px; }
+    .proc-step p { font-size: 13px; line-height: 1.8; color: rgba(255,255,255,0.38); }
+    .proc-promise {
+      margin-top: 48px; padding: 40px 48px;
+      border: 1px solid rgba(192,154,82,0.2);
+      background: rgba(192,154,82,0.05);
+      display: flex; align-items: center; justify-content: space-between; gap: 40px;
+    }
+    .proc-promise p { font-family: var(--serif); font-size: clamp(20px,2vw,28px); font-style: italic; color: var(--gold-l); max-width: 60ch; }
+    .proc-promise span { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.2); flex-shrink: 0; }
+
+    /* ── OFFERS ── */
+    .offers { background: var(--light); padding: 128px 72px; }
+    .offers-head { max-width: 580px; margin-bottom: 64px; }
+    .plans-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; background: var(--light-2); margin-bottom: 40px; }
+    .plan {
+      background: var(--white); padding: 56px 48px;
+      border: 1px solid transparent;
+      position: relative;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .plan:hover { box-shadow: 0 20px 60px rgba(0,0,0,0.07); }
+    .plan.pop { background: var(--ink); border-color: rgba(192,154,82,0.3); }
+    .plan-badge { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 28px; display: block; }
+    .plan-name { font-family: var(--serif); font-size: 30px; font-weight: 400; color: var(--ink); margin-bottom: 8px; }
+    .plan.pop .plan-name { color: #fff; }
+    .plan-desc { font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+    .plan.pop .plan-desc { color: rgba(255,255,255,0.38); }
+    .plan-price { font-family: var(--serif); font-size: 52px; color: var(--gold-l); line-height: 1; margin-bottom: 6px; }
+    .plan-recur { font-size: 12px; color: var(--muted); margin-bottom: 36px; }
+    .plan.pop .plan-recur { color: rgba(255,255,255,0.3); }
+    .plan-list { list-style: none; margin-bottom: 44px; }
+    .plan-list li { font-size: 13px; line-height: 1.7; color: var(--muted); padding: 10px 0; border-bottom: 1px solid var(--light-2); display: flex; gap: 12px; }
+    .plan.pop .plan-list li { color: rgba(255,255,255,0.45); border-color: rgba(255,255,255,0.06); }
+    .plan-list li::before { content: '✓'; color: var(--gold); flex-shrink: 0; }
+    .plan-cta { display: block; text-align: center; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; padding: 14px; text-decoration: none; border-radius: 4px; transition: background .25s, color .25s; }
+    .plan-cta-outline { border: 1px solid var(--light-2); color: var(--ink); }
+    .plan-cta-outline:hover { border-color: var(--gold); color: var(--gold); }
+    .plan-cta-gold { background: var(--gold); color: var(--ink); }
+    .plan-cta-gold:hover { background: var(--gold-l); }
+    .plan-note { font-size: 12px; color: var(--muted); text-align: center; }
+
+    /* ── WHY ── */
+    .why { background: var(--white); padding: 128px 72px; }
+    .why-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--light-2); }
+    .why-card { background: var(--white); padding: 40px 36px; transition: background .3s; }
+    .why-card:hover { background: var(--gold-bg); }
+    .why-check { font-size: 20px; margin-bottom: 16px; display: block; }
+    .why-card h4 { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 8px; }
+    .why-card p { font-size: 13px; line-height: 1.75; color: var(--muted); }
+
+    /* ── PORTFOLIO ── */
+    .portfolio { background: var(--light); padding: 128px 72px; }
+    .port-head { margin-bottom: 64px; }
+    .port-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .port-card { position: relative; height: 380px; overflow: hidden; background: var(--ink-2); cursor: pointer; }
+    .port-card img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.65) saturate(0.7); transition: transform .8s var(--ease), filter .8s var(--ease); }
+    .port-card:hover img { transform: scale(1.05); filter: brightness(0.5) saturate(0.9); }
+    .port-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 32px; background: linear-gradient(to top, rgba(13,13,13,0.95), transparent); display: flex; justify-content: space-between; align-items: flex-end; }
+    .port-name { font-family: var(--serif); font-size: 22px; color: #fff; }
+    .port-sector { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-top: 6px; }
+    .port-link { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #fff; text-decoration: none; background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); padding: 10px 20px; border: 1px solid rgba(255,255,255,0.15); opacity: 0; transform: translateY(8px); transition: opacity .3s, transform .3s; }
+    .port-card:hover .port-link { opacity: 1; transform: translateY(0); }
+
+    /* ── FAQ ── */
+    .faq { background: var(--white); padding: 128px 72px; }
+    .faq-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .faq-list { }
+    .faq-item { border-bottom: 1px solid var(--light-2); }
+    .faq-q {
+      width: 100%; background: none; border: none; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 24px 0; text-align: left; gap: 20px;
+      font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--ink);
+    }
+    .faq-q:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .faq-arrow { font-size: 18px; color: var(--gold); flex-shrink: 0; transition: transform .3s var(--ease); }
+    .faq-item.open .faq-arrow { transform: rotate(45deg); }
+    .faq-a { font-size: 14px; line-height: 1.8; color: var(--muted); max-height: 0; overflow: hidden; transition: max-height .5s var(--ease), padding .3s; }
+    .faq-item.open .faq-a { max-height: 200px; padding-bottom: 24px; }
+
+    /* ── CONTACT ── */
+    .contact { background: var(--ink); padding: 128px 72px; }
+    .contact-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .contact-left .s-tag { color: rgba(192,154,82,0.75); }
+    .contact-left h2 { color: #fff; }
+    .contact-left .body-l { color: rgba(255,255,255,0.38); margin-bottom: 48px; }
+    .contact-detail { margin-bottom: 28px; }
+    .c-lbl { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; display: block; }
+    .c-val { font-family: var(--serif); font-size: 18px; color: #fff; text-decoration: none; }
+    .contact-form { }
+    .fg { margin-bottom: 20px; }
+    .fg label { font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.3); display: block; margin-bottom: 8px; }
+    .fg input, .fg select, .fg textarea {
+      width: 100%; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff; font-family: var(--font); font-size: 14px; font-weight: 300;
+      padding: 13px 16px; outline: none;
+      transition: border-color .25s;
+    }
+    .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: rgba(192,154,82,0.5); }
+    .fg textarea { min-height: 110px; resize: vertical; }
+    .fg select option { background: var(--ink); }
+    .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .submit { width: 100%; background: var(--gold); color: var(--ink); border: none; cursor: pointer; font-family: var(--font); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 16px; transition: background .25s; }
+    .submit:hover { background: var(--gold-l); }
+    .submit:focus-visible { outline: 2px solid var(--gold-l); outline-offset: 2px; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--ink-2); padding: 48px 72px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 24px; }
+    .footer-logo img { height: 24px; filter: brightness(0) invert(1); opacity: 0.3; }
+    .footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
+    .footer-links a { font-size: 11px; color: rgba(255,255,255,0.2); text-decoration: none; letter-spacing: 0.08em; transition: color .2s; }
+    .footer-links a:hover { color: rgba(255,255,255,0.6); }
+    .footer-copy { font-size: 11px; color: rgba(255,255,255,0.12); }
+
+    /* ── REVEAL ── */
+    .r { opacity:0; transform:translateY(28px); transition: opacity .85s var(--ease-out), transform .85s var(--ease-out); }
+    .r.on { opacity:1; transform:translateY(0); }
+    .r.d1 { transition-delay:.1s; } .r.d2 { transition-delay:.2s; } .r.d3 { transition-delay:.3s; } .r.d4 { transition-delay:.4s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
 
-    .timer {
-      display: flex;
-      gap: 40px;
-      align-items: flex-end;
-    }
-
-    .unit {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .digits {
-      font-size: clamp(64px, 12vw, 140px);
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-      transition: opacity 0.15s;
-      color: #00ff00;
-    }
-
-    .label {
-      font-size: 11px;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: #444;
-    }
-
-    .separator {
-      font-size: clamp(48px, 10vw, 120px);
-      font-weight: 700;
-      line-height: 1;
-      color: #222;
-      padding-bottom: 18px;
-    }
-
-    .tagline {
-      font-size: 13px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #333;
-    }
-
-    .dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: #fff;
-      opacity: 0.15;
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      nav { width: calc(100% - 32px); padding: 10px 16px; }
+      .nav-links { display: none; }
+      section { padding: 80px 28px; }
+      .hero-content { padding: 0 28px 72px; }
+      .hero-kpis { display: none; }
+      .prob-layout, .why-layout, .faq-layout, .contact-layout { grid-template-columns: 1fr; }
+      .services-grid, .proc-steps, .plans-grid, .port-grid, .why-grid { grid-template-columns: 1fr; }
+      .proc-promise { flex-direction: column; }
     }
   </style>
 </head>
 <body>
 
-  <div class="brand">Autonomous Design</div>
+<a class="skip" href="#main">Aller au contenu</a>
 
-  <div class="timer">
-    <div class="unit">
-      <div class="digits" id="hours">10</div>
-      <div class="label">Heures</div>
-    </div>
-    <div class="separator">:</div>
-    <div class="unit">
-      <div class="digits" id="minutes">00</div>
-      <div class="label">Minutes</div>
-    </div>
-    <div class="separator">:</div>
-    <div class="unit">
-      <div class="digits" id="seconds">00</div>
-      <div class="label">Secondes</div>
+<!-- NAV -->
+<nav aria-label="Navigation principale">
+  <a class="nav-logo" href="#" aria-label="Accueil Autonomous Design">
+    <img src="logo.png" alt="Autonomous Design">
+  </a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#offres">Offres</a></li>
+    <li><a href="#realisations">Réalisations</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a class="nav-cta" href="#contact">Demander un devis</a>
+</nav>
+
+<main id="main">
+
+<!-- ── 1. HERO ── -->
+<section class="hero" aria-label="Bannière principale">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="hero-overlay" aria-hidden="true"></div>
+  <div class="hero-watermark" aria-hidden="true">
+    <span>Autonomous</span>
+    <span>Design</span>
+  </div>
+  <div class="hero-content">
+    <div class="hero-tag"><span></span>Agence Web — Belgique</div>
+    <h1>Votre présence en ligne,<br><em>de A à Z.</em></h1>
+    <p class="hero-sub">Création de sites web, hébergement, maintenance, mises à jour et accompagnement digital. Nous créons des sites rapides, sécurisés et évolutifs — puis nous les faisons vivre pour que vous puissiez vous concentrer sur votre activité.</p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn-w">Demander un devis</a>
+      <a href="#realisations" class="btn-ghost">Voir nos réalisations</a>
     </div>
   </div>
+  <div class="hero-kpis" aria-label="Chiffres clés">
+    <div class="kpi"><div class="kpi-n">7j</div><div class="kpi-l">Délai moyen</div></div>
+    <div class="kpi"><div class="kpi-n">700€</div><div class="kpi-l">À partir de</div></div>
+    <div class="kpi"><div class="kpi-n">BE</div><div class="kpi-l">Basés en Belgique</div></div>
+  </div>
+</section>
 
-  <div class="tagline">Site bientôt disponible</div>
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>Création de site</span><span>Hébergement</span><span>Maintenance</span><span>SEO</span><span>Réseaux sociaux</span><span>Google Business</span><span>Accompagnement</span><span>Nom de domaine</span>
+    <span>Création de site</span><span>Hébergement</span><span>Maintenance</span><span>SEO</span><span>Réseaux sociaux</span><span>Google Business</span><span>Accompagnement</span><span>Nom de domaine</span>
+  </div>
+</div>
 
-  <script>
-    const total = 10 * 60 * 60;
-    let remaining = total;
+<!-- ── 2. PROBLÈMES ── -->
+<section class="problems" id="problemes">
+  <div class="prob-layout">
+    <div>
+      <span class="s-tag r">Vous vous reconnaissez ?</span>
+      <h2 class="r">Ces problèmes,<br><em>on les connaît.</em></h2>
+      <div class="bar r"></div>
+      <div class="prob-list">
+        <div class="prob-item">
+          <span class="prob-icon">🕰️</span>
+          <div class="prob-text">
+            <h4>Mon site est vieillissant</h4>
+            <p>Il ne reflète plus votre image actuelle, et les visiteurs le sentent dès les premières secondes.</p>
+          </div>
+        </div>
+        <div class="prob-item">
+          <span class="prob-icon">⏳</span>
+          <div class="prob-text">
+            <h4>Je n'ai pas le temps de gérer ça</h4>
+            <p>Mettre à jour un site prend du temps que vous préférez consacrer à votre métier.</p>
+          </div>
+        </div>
+        <div class="prob-item">
+          <span class="prob-icon">🐌</span>
+          <div class="prob-text">
+            <h4>Mon site est lent ou peu fiable</h4>
+            <p>Un hébergement médiocre fait fuir les visiteurs et pénalise votre référencement.</p>
+          </div>
+        </div>
+        <div class="prob-item">
+          <span class="prob-icon">🔍</span>
+          <div class="prob-text">
+            <h4>Je n'apparais pas sur Google</h4>
+            <p>Vos clients vous cherchent en ligne — mais ne vous trouvent pas. Vos concurrents, eux, y sont.</p>
+          </div>
+        </div>
+        <div class="prob-item">
+          <span class="prob-icon">📞</span>
+          <div class="prob-text">
+            <h4>Je jongle avec trop d'interlocuteurs</h4>
+            <p>Un prestataire pour le site, un autre pour l'hébergement, un autre pour les réseaux. C'est épuisant.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="prob-answer r d2">
+      <span class="s-tag">Notre réponse</span>
+      <h2 class="light">Nous nous<br><em>occupons de tout.</em></h2>
+      <p>Un seul interlocuteur pour l'intégralité de votre présence en ligne. Vous posez vos objectifs, nous construisons et gérons tout le reste — de la création à l'évolution continue.</p>
+      <a href="#contact" class="btn-gold">Parler de mon projet</a>
+    </div>
+  </div>
+</section>
 
-    const pad = n => String(n).padStart(2, '0');
+<!-- ── 3. SERVICES ── -->
+<section class="services" id="services">
+  <div class="services-head r">
+    <span class="s-tag">Ce que nous faisons</span>
+    <h2>Un écosystème complet<br><em>de présence digitale.</em></h2>
+    <p class="body-l">Nous ne livrons pas simplement un site. Nous construisons et gérons l'ensemble de votre visibilité en ligne, dans la durée.</p>
+  </div>
+  <div class="services-grid">
+    <article class="srv r">
+      <span class="srv-icon">🎨</span>
+      <h3>Création de site</h3>
+      <ul class="srv-list">
+        <li>Site vitrine (5 pages)</li>
+        <li>Landing page</li>
+        <li>Boutique e-commerce</li>
+        <li>Refonte de site existant</li>
+        <li>Design sur-mesure & responsive</li>
+      </ul>
+    </article>
+    <article class="srv r d1">
+      <span class="srv-icon">🖥️</span>
+      <h3>Hébergement</h3>
+      <ul class="srv-list">
+        <li>Serveurs rapides & sécurisés</li>
+        <li>Certificat SSL inclus</li>
+        <li>Sauvegardes automatiques</li>
+        <li>Surveillance 24h/24</li>
+        <li>Nom de domaine géré</li>
+      </ul>
+    </article>
+    <article class="srv r d2">
+      <span class="srv-icon">🔧</span>
+      <h3>Maintenance</h3>
+      <ul class="srv-list">
+        <li>Mises à jour de contenu</li>
+        <li>Corrections de bugs</li>
+        <li>Sécurité & protection</li>
+        <li>Support email sous 48h</li>
+        <li>1h de modifications/mois</li>
+      </ul>
+    </article>
+    <article class="srv r">
+      <span class="srv-icon">📈</span>
+      <h3>Présence digitale</h3>
+      <ul class="srv-list">
+        <li>Google Business Profile</li>
+        <li>SEO & référencement</li>
+        <li>Gestion réseaux sociaux</li>
+        <li>Email professionnel</li>
+        <li>Rapport mensuel</li>
+      </ul>
+    </article>
+    <article class="srv r d1">
+      <span class="srv-icon">🤝</span>
+      <h3>Accompagnement</h3>
+      <ul class="srv-list">
+        <li>Conseils stratégiques</li>
+        <li>Évolution du site</li>
+        <li>Formation à la gestion</li>
+        <li>Support réactif</li>
+        <li>Interlocuteur dédié</li>
+      </ul>
+    </article>
+    <article class="srv r d2">
+      <span class="srv-icon">🛍️</span>
+      <h3>Options sectorielles</h3>
+      <ul class="srv-list">
+        <li>Réservation en ligne</li>
+        <li>Menu / carte digitale</li>
+        <li>Galerie avant/après</li>
+        <li>Formulaire de devis</li>
+        <li>Click & collect</li>
+      </ul>
+    </article>
+  </div>
+</section>
 
-    function tick() {
-      if (remaining <= 0) {
-        document.querySelector('.tagline').textContent = 'Bienvenue.';
-        return;
+<!-- ── 4. PROCESS ── -->
+<section class="process" id="process">
+  <div class="process-head r">
+    <span class="s-tag">Comment ça marche</span>
+    <h2 class="light">De l'idée au site,<br><em>et bien au-delà.</em></h2>
+  </div>
+  <div class="proc-steps">
+    <div class="proc-step r">
+      <div class="proc-num">01</div>
+      <span class="proc-badge">Gratuit</span>
+      <h3>Découverte</h3>
+      <p>Un appel de 30 minutes pour comprendre votre activité, vos clients et vos objectifs. On vous propose une solution adaptée à votre réalité.</p>
+    </div>
+    <div class="proc-step r d1">
+      <div class="proc-num">02</div>
+      <span class="proc-badge">Sous 48h</span>
+      <h3>Proposition</h3>
+      <p>Vous recevez un devis clair, sans jargon. Chaque ligne est justifiée. Pas de mauvaise surprise.</p>
+    </div>
+    <div class="proc-step r d2">
+      <div class="proc-num">03</div>
+      <span class="proc-badge">7 jours</span>
+      <h3>Création</h3>
+      <p>Notre équipe conçoit votre site. Vous validez chaque étape. Les retouches sont illimitées jusqu'à votre satisfaction totale.</p>
+    </div>
+    <div class="proc-step r">
+      <div class="proc-num">04</div>
+      <span class="proc-badge">J+7</span>
+      <h3>Mise en ligne</h3>
+      <p>Déploiement, configuration DNS, activation SSL, tests sur tous les appareils. Tout est vérifié avant le lancement.</p>
+    </div>
+    <div class="proc-step r d1">
+      <div class="proc-num">05</div>
+      <span class="proc-badge">Mensuel</span>
+      <h3>Maintenance</h3>
+      <p>Mises à jour, sauvegardes, corrections, modifications de contenu. Votre site reste performant et à jour en permanence.</p>
+    </div>
+    <div class="proc-step r d2">
+      <div class="proc-num">06</div>
+      <span class="proc-badge">Continu</span>
+      <h3>Évolution</h3>
+      <p>Votre business grandit, votre site aussi. Nouvelles pages, nouvelles fonctionnalités, nouvelles campagnes — on s'adapte avec vous.</p>
+    </div>
+  </div>
+  <div class="proc-promise r">
+    <p>"Nous ne disparaissons pas une fois le site livré. Nous restons votre partenaire digital dans la durée."</p>
+    <span>Notre engagement</span>
+  </div>
+</section>
+
+<!-- ── 5. OFFRES ── -->
+<section class="offers" id="offres">
+  <div class="offers-head r">
+    <span class="s-tag">Nos offres</span>
+    <h2>Simple, transparent,<br><em>sans surprise.</em></h2>
+    <p class="body-l">Choisissez le niveau d'accompagnement qui correspond à votre situation. Tous les tarifs sont HTVA. Un devis personnalisé est disponible sur demande.</p>
+  </div>
+  <div class="plans-grid">
+    <div class="plan r">
+      <span class="plan-badge">Starter</span>
+      <div class="plan-name">Site & Hébergement</div>
+      <div class="plan-desc">Pour démarrer avec une présence professionnelle solide.</div>
+      <div class="plan-price">700€</div>
+      <div class="plan-recur">+ 35 €/mois hébergement & SSL</div>
+      <ul class="plan-list">
+        <li>Site vitrine 5 pages sur-mesure</li>
+        <li>Design responsive & mobile</li>
+        <li>Hébergement sécurisé inclus</li>
+        <li>Certificat SSL inclus</li>
+        <li>Sauvegardes automatiques</li>
+        <li>Formulaire de contact</li>
+        <li>Livraison en 7 jours</li>
+      </ul>
+      <a href="#contact" class="plan-cta plan-cta-outline">Démarrer</a>
+    </div>
+    <div class="plan pop r d1">
+      <span class="plan-badge">✦ Business — Le plus choisi</span>
+      <div class="plan-name">Site + Maintenance</div>
+      <div class="plan-desc">Pour ceux qui veulent un site performant sans s'en occuper.</div>
+      <div class="plan-price">1.200€</div>
+      <div class="plan-recur">+ 75 €/mois maintenance complète</div>
+      <ul class="plan-list">
+        <li>Tout le plan Starter</li>
+        <li>Design premium sur-mesure</li>
+        <li>1h de modifications/mois</li>
+        <li>Support email sous 48h</li>
+        <li>Google My Business inclus</li>
+        <li>SEO de base optimisé</li>
+        <li>Rapport trimestriel</li>
+      </ul>
+      <a href="#contact" class="plan-cta plan-cta-gold">Démarrer</a>
+    </div>
+    <div class="plan r d2">
+      <span class="plan-badge">Premium</span>
+      <div class="plan-name">Présence Digitale</div>
+      <div class="plan-desc">Votre image en ligne, constamment soignée par notre équipe.</div>
+      <div class="plan-price">220€</div>
+      <div class="plan-recur">/mois — tout inclus</div>
+      <ul class="plan-list">
+        <li>Tout le plan Business</li>
+        <li>8 à 10 posts réseaux sociaux/mois</li>
+        <li>Gestion Google Business</li>
+        <li>Rapport de performance mensuel</li>
+        <li>Modifications illimitées</li>
+        <li>Support prioritaire</li>
+        <li>Conseils stratégiques</li>
+      </ul>
+      <a href="#contact" class="plan-cta plan-cta-outline">Nous contacter</a>
+    </div>
+  </div>
+  <p class="plan-note r">Besoin d'une boutique e-commerce, d'une refonte ou d'options spécifiques à votre secteur ? <a href="#contact" style="color:var(--gold);text-decoration:none;">Parlons-en →</a></p>
+</section>
+
+<!-- ── 6. POURQUOI NOUS ── -->
+<section class="why" id="pourquoi">
+  <div class="why-layout">
+    <div class="r">
+      <span class="s-tag">Pourquoi nous choisir</span>
+      <h2>Un seul partenaire<br><em>pour tout gérer.</em></h2>
+      <div class="bar"></div>
+      <p class="body-l">Nous ne sommes pas une usine à sites. Nous choisissons nos clients, nous prenons le temps de comprendre leur métier, et nous nous impliquons dans leur succès en ligne.</p>
+      <br>
+      <p class="body-l">Notre objectif est simple : que votre présence digitale travaille pour vous, même quand vous ne le faites pas.</p>
+    </div>
+    <div class="why-grid r d2">
+      <div class="why-card">
+        <span class="why-check">✦</span>
+        <h4>Un seul interlocuteur</h4>
+        <p>Site, hébergement, mises à jour, réseaux — tout chez nous. Fini la coordination entre prestataires.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-check">⚡</span>
+        <h4>Livraison rapide</h4>
+        <p>Votre site en ligne en 7 jours. Nous respectons nos délais parce que votre temps a de la valeur.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-check">🎯</span>
+        <h4>Fait pour votre secteur</h4>
+        <p>Chaque site est pensé pour vos clients, pas pour un client générique. On connaît votre métier.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-check">🔒</span>
+        <h4>Sécurité & fiabilité</h4>
+        <p>Hébergement professionnel, sauvegardes quotidiennes, SSL. Votre site est protégé en permanence.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-check">💶</span>
+        <h4>Prix accessibles</h4>
+        <p>Des tarifs pensés pour les PME belges — pas pour des grandes entreprises. Qualité sans compromis.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-check">🤝</span>
+        <h4>Support réactif</h4>
+        <p>Une question, un problème ? On répond sous 48h. Toujours. Pas de ticket perdu dans un système.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. PORTFOLIO ── -->
+<section class="portfolio" id="realisations">
+  <div class="port-head r">
+    <span class="s-tag">Nos réalisations</span>
+    <h2>Ils nous ont fait<br><em>confiance.</em></h2>
+  </div>
+  <div class="port-grid">
+    <article class="port-card r">
+      <img src="chateau-baille-rouge/chateau.jpg" alt="Site web du Château de la Baille Rouge">
+      <div class="port-info">
+        <div>
+          <div class="port-name">Château de la Baille Rouge</div>
+          <div class="port-sector">Événementiel · Hainaut</div>
+        </div>
+        <a href="chateau-baille-rouge/index.html" class="port-link" aria-label="Voir le site du Château">Voir le site →</a>
+      </div>
+    </article>
+    <article class="port-card r d1">
+      <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80" alt="Site web Tomi Sushi Bar">
+      <div class="port-info">
+        <div>
+          <div class="port-name">Tomi Sushi Bar</div>
+          <div class="port-sector">Restauration · Jodoigne</div>
+        </div>
+        <a href="#" class="port-link" aria-label="Voir le site Tomi Sushi Bar">Voir le site →</a>
+      </div>
+    </article>
+    <article class="port-card r d2">
+      <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&q=80" alt="Site web Salon A. Latour">
+      <div class="port-info">
+        <div>
+          <div class="port-name">Salon A. Latour</div>
+          <div class="port-sector">Coiffure & Beauté</div>
+        </div>
+        <a href="#" class="port-link" aria-label="Voir le site du salon">Voir le site →</a>
+      </div>
+    </article>
+    <article class="port-card r d3">
+      <img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&q=80" alt="Site web Friterie Chez L'Coq">
+      <div class="port-info">
+        <div>
+          <div class="port-name">Friterie Chez L'Coq</div>
+          <div class="port-sector">Restauration rapide</div>
+        </div>
+        <a href="#" class="port-link" aria-label="Voir le site de la friterie">Voir le site →</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ── 8. FAQ ── -->
+<section class="faq" id="faq">
+  <div class="faq-layout">
+    <div class="r">
+      <span class="s-tag">Questions fréquentes</span>
+      <h2>Vous avez des<br><em>questions ?</em></h2>
+      <div class="bar"></div>
+      <p class="body-l">On comprend. Confier sa présence en ligne à quelqu'un demande de la confiance. Ces questions reviennent souvent — voici nos réponses honnêtes.</p>
+    </div>
+    <div class="faq-list r d1">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          À qui appartient le site une fois livré ?
+          <span class="faq-arrow" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a">Le site vous appartient à 100%. Le code, les images, le contenu — tout est à vous. Si vous souhaitez changer de prestataire un jour, vous emportez tout.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Puis-je modifier mon site moi-même ?
+          <span class="faq-arrow" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a">Oui. Nous vous formons à la gestion de base de votre site. Et si vous préférez nous déléguer les modifications, c'est inclus dans nos formules de maintenance.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Combien coûte la maintenance mensuelle ?
+          <span class="faq-arrow" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a">L'hébergement seul coûte 35€/mois. La maintenance complète (hébergement + 1h de modifications + support) est à 75€/mois. La formule Présence Digitale tout inclus est à 220€/mois.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Que se passe-t-il si mon site tombe en panne ?
+          <span class="faq-arrow" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a">Nous sommes notifiés immédiatement par notre système de surveillance. Une intervention est lancée sous 4h ouvrées. Nos serveurs ont un taux de disponibilité de 99,9%.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Puis-je changer d'offre plus tard ?
+          <span class="faq-arrow" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a">Oui, sans frais. Vous pouvez passer d'une formule à une autre à n'importe quel moment. Nos offres sont conçues pour évoluer avec votre business.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Combien de temps faut-il pour créer mon site ?
+          <span class="faq-arrow" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-a">En moyenne 7 jours ouvrés après validation du devis et réception de vos contenus (textes, photos). Les sites plus complexes peuvent prendre 2 à 3 semaines.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 9. CONTACT ── -->
+<section class="contact" id="contact">
+  <div class="contact-layout">
+    <div class="contact-left r">
+      <span class="s-tag">Parlons de votre projet</span>
+      <h2>Prêt à lancer<br><em>votre présence en ligne ?</em></h2>
+      <p class="body-l">Un appel de 30 minutes suffit. On écoute, on propose, on chiffre. Sans engagement, sans jargon.</p>
+      <div class="contact-detail">
+        <span class="c-lbl">Email</span>
+        <a class="c-val" href="mailto:hello@autonomous-design.com">hello@autonomous-design.com</a>
+      </div>
+      <div class="contact-detail">
+        <span class="c-lbl">WhatsApp / Téléphone</span>
+        <a class="c-val" href="tel:+32XXXXXXXX">+32 (0) XX XX XX XX</a>
+      </div>
+      <div class="contact-detail">
+        <span class="c-lbl">Basés en</span>
+        <div class="c-val">Belgique</div>
+      </div>
+      <div class="contact-detail">
+        <span class="c-lbl">Réponse garantie</span>
+        <div class="c-val">Sous 24 heures</div>
+      </div>
+    </div>
+    <form class="contact-form r d1" action="#" method="POST" novalidate>
+      <div class="fg-row">
+        <div class="fg">
+          <label for="prenom">Prénom</label>
+          <input type="text" id="prenom" name="prenom" placeholder="Alexandre" autocomplete="given-name">
+        </div>
+        <div class="fg">
+          <label for="nom">Nom</label>
+          <input type="text" id="nom" name="nom" placeholder="Dubois" autocomplete="family-name">
+        </div>
+      </div>
+      <div class="fg">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="votre@email.com" autocomplete="email">
+      </div>
+      <div class="fg">
+        <label for="tel">Téléphone (optionnel)</label>
+        <input type="tel" id="tel" name="tel" placeholder="+32 (0) XX XX XX XX" autocomplete="tel">
+      </div>
+      <div class="fg">
+        <label for="service">Quel service vous intéresse ?</label>
+        <select id="service" name="service">
+          <option value="">Sélectionner</option>
+          <option>Création de site vitrine</option>
+          <option>Refonte de site existant</option>
+          <option>Boutique e-commerce</option>
+          <option>Maintenance mensuelle</option>
+          <option>Présence digitale complète</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label for="message">Décrivez votre projet</label>
+        <textarea id="message" name="message" placeholder="Mon activité est… Je cherche à… Mon budget est aux alentours de…"></textarea>
+      </div>
+      <button type="submit" class="submit">Envoyer ma demande</button>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" aria-label="Retour en haut de page">
+    <div class="footer-logo"><img src="logo.png" alt="Autonomous Design"></div>
+  </a>
+  <div class="footer-links">
+    <a href="#services">Services</a>
+    <a href="#process">Process</a>
+    <a href="#offres">Offres</a>
+    <a href="#realisations">Réalisations</a>
+    <a href="#faq">FAQ</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 Autonomous Design · Belgique · Tous droits réservés</p>
+</footer>
+
+<script>
+  // ── CANVAS
+  (function(){
+    const cv = document.getElementById('hero-canvas');
+    const cx = cv.getContext('2d');
+    let W, H, nodes=[], mouse={x:-999,y:-999};
+    const N=65, D=175, G='rgba(192,154,82,';
+
+    function resize(){ W=cv.width=cv.offsetWidth; H=cv.height=cv.offsetHeight; }
+
+    function Nd(){ this.x=Math.random()*W; this.y=Math.random()*H; this.vx=(Math.random()-.5)*.38; this.vy=(Math.random()-.5)*.38; this.r=Math.random()*1.6+.7; }
+    Nd.prototype.update=function(){ this.x+=this.vx; this.y+=this.vy; if(this.x<0||this.x>W)this.vx*=-1; if(this.y<0||this.y>H)this.vy*=-1; };
+
+    function init(){ nodes=[]; for(let i=0;i<N;i++)nodes.push(new Nd()); }
+
+    function draw(){
+      cx.clearRect(0,0,W,H);
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
+          const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y, d=Math.sqrt(dx*dx+dy*dy);
+          if(d<D){ cx.beginPath(); cx.moveTo(nodes[i].x,nodes[i].y); cx.lineTo(nodes[j].x,nodes[j].y); cx.strokeStyle=G+(1-d/D)*.3+')'; cx.lineWidth=.6; cx.stroke(); }
+        }
+        const mx=nodes[i].x-mouse.x, my=nodes[i].y-mouse.y, md=Math.sqrt(mx*mx+my*my);
+        if(md<160){ cx.beginPath(); cx.moveTo(nodes[i].x,nodes[i].y); cx.lineTo(mouse.x,mouse.y); cx.strokeStyle=G+(1-md/160)*.55+')'; cx.lineWidth=.8; cx.stroke(); }
+        cx.beginPath(); cx.arc(nodes[i].x,nodes[i].y,nodes[i].r,0,Math.PI*2); cx.fillStyle=G+'.65)'; cx.fill();
+        nodes[i].update();
       }
-      remaining--;
-      const h = Math.floor(remaining / 3600);
-      const m = Math.floor((remaining % 3600) / 60);
-      const s = remaining % 60;
-      document.getElementById('hours').textContent = pad(h);
-      document.getElementById('minutes').textContent = pad(m);
-      document.getElementById('seconds').textContent = pad(s);
+      requestAnimationFrame(draw);
     }
 
-    setInterval(tick, 1000);
-  </script>
+    cv.addEventListener('mousemove', e=>{ const r=cv.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top; });
+    cv.addEventListener('mouseleave', ()=>{ mouse.x=-999; mouse.y=-999; });
+    window.addEventListener('resize', ()=>{ resize(); init(); });
+    resize(); init(); draw();
+  })();
+
+  // ── SCROLL REVEAL
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('on'); });
+  }, { threshold:.07, rootMargin:'0px 0px -44px 0px' });
+  document.querySelectorAll('.r, .prob-item').forEach(el=>obs.observe(el));
+
+  // ── FAQ
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    item.querySelector('.faq-q').addEventListener('click', function(){
+      const open = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i=>{ i.classList.remove('open'); i.querySelector('.faq-q').setAttribute('aria-expanded','false'); });
+      if(!open){ item.classList.add('open'); this.setAttribute('aria-expanded','true'); }
+    });
+  });
+
+  // ── TICKER
+  const t = document.querySelector('.ticker-track');
+  t.innerHTML += t.innerHTML;
+</script>
 
 </body>
 </html>
