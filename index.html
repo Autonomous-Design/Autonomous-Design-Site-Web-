@@ -7,14 +7,21 @@
   <meta name="description" content="Agence web belge spécialisée dans la création de sites sur mesure, l'hébergement, la maintenance et l'accompagnement digital pour les PME. Un seul interlocuteur, de A à Z.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://autonomous-design.com/">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="keywords" content="agence web Belgique, création site web Belgique, site internet PME Belgique, développement web Bruxelles, site web sur mesure Belgique, agence digitale Belgique, web design Belgique, hébergement web Belgique, référencement SEO Belgique">
+  <meta name="author" content="Autonomous Design">
+  <meta name="geo.region" content="BE">
+  <meta name="geo.country" content="Belgium">
+  <meta name="language" content="French">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://autonomous-design.com/">
   <meta property="og:title" content="Autonomous Design — Agence Web Belgique">
-  <meta property="og:description" content="Création de sites web sur mesure, hébergement et accompagnement digital pour les PME belges.">
+  <meta property="og:description" content="Création de sites web sur mesure, hébergement et accompagnement digital pour les PME belges. 3 à 4× moins cher que le marché. Devis sous 48h.">
   <meta property="og:image" content="https://autonomous-design.com/hero.png">
   <meta property="og:locale" content="fr_BE">
+  <meta property="og:site_name" content="Autonomous Design">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -78,9 +85,9 @@
       width: max-content;
     }
     .nav-logo { display: flex; align-items: center; text-decoration: none; margin-right: 36px; }
-    .nav-logo img { height: 22px; filter: brightness(0) invert(1); }
+    .nav-logo img { height: 28px; filter: brightness(0) invert(1); }
     .nav-links { display: flex; gap: 28px; list-style: none; margin-right: 28px; }
-    .nav-links a { font-size: 12px; letter-spacing: 0.04em; color: rgba(255,255,255,0.4); text-decoration: none; transition: color .2s; }
+    .nav-links a { font-size: 13px; letter-spacing: 0.04em; color: rgba(255,255,255,0.4); text-decoration: none; transition: color .2s; }
     .nav-links a:hover { color: #fff; }
     .nav-cta { background: var(--blue); color: #fff; font-size: 12px; font-weight: 500; padding: 10px 22px; border-radius: 100px; text-decoration: none; transition: background .25s, transform .2s; display: flex; align-items: center; gap: 6px; }
     .nav-cta:hover { background: var(--blue-d); transform: translateY(-1px); }
@@ -93,36 +100,32 @@
       display: flex; flex-direction: column;
       align-items: flex-start; justify-content: flex-end;
       overflow: hidden;
-      background: var(--ink);
+      background: #fff;
     }
-    .hero-bg {
+    .hero-bg { display: none; }
+    .hero-overlay { display: none; }
+    .hero-grain { display: none; }
+
+    /* Smoke canvas */
+    #smokeCanvas {
       position: absolute; inset: 0;
-      background-image: url('hero.png');
-      background-size: cover; background-position: center;
-      animation: kenBurns 20s ease-in-out infinite alternate;
-      transform-origin: center;
+      width: 100%; height: 100%;
+      z-index: 1; pointer-events: none;
     }
-    @keyframes kenBurns {
-      from { transform: scale(1.08) translate(0, 0); }
-      to   { transform: scale(1.0)  translate(-1%, -0.5%); }
+
+    /* Watermark logo */
+    .hero-logo-watermark {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2; pointer-events: none; user-select: none;
+      display: flex; align-items: center; justify-content: center;
     }
-    .hero-overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(
-        145deg,
-        rgba(9,13,26,0.96) 0%,
-        rgba(9,13,26,0.70) 55%,
-        rgba(9,13,26,0.40) 100%
-      );
+    .hero-logo-watermark img {
+      width: clamp(260px, 36vw, 560px);
+      opacity: 0.09;
     }
-    /* Grain texture */
-    .hero-grain {
-      position: absolute; inset: 0; pointer-events: none; z-index: 1;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-      background-size: 160px 160px;
-      opacity: 0.4;
-    }
-    /* Logo hero */
+
     .hero-content {
       position: relative; z-index: 3;
       padding: 0 72px 96px; max-width: 780px;
@@ -131,26 +134,26 @@
     .hero-tag {
       display: inline-flex; align-items: center; gap: 10px;
       font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
-      color: var(--blue-l); margin-bottom: 32px;
+      color: var(--blue); margin-bottom: 32px;
     }
-    .hero-tag span { display: block; width: 28px; height: 1px; background: var(--blue-l); }
+    .hero-tag span { display: block; width: 28px; height: 1px; background: var(--blue); }
     .hero h1 {
       font-family: var(--serif);
       font-size: clamp(44px,5.5vw,78px);
       font-weight: 400; line-height: 1.06;
-      color: #fff; margin-bottom: 24px;
+      color: var(--ink); margin-bottom: 24px;
     }
-    .hero h1 em { font-style: italic; color: var(--blue-l); }
+    .hero h1 em { font-style: italic; color: var(--blue); }
     .hero-sub {
       font-size: 16px; line-height: 1.8;
-      color: rgba(255,255,255,0.42);
+      color: var(--muted);
       max-width: 520px; margin-bottom: 48px;
     }
     .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
     .btn-blue { background: var(--blue); color: #fff; font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 15px 36px; border-radius: 100px; text-decoration: none; transition: background .25s, transform .2s var(--ease-spring); }
     .btn-blue:hover { background: var(--blue-d); transform: translateY(-2px); }
-    .btn-ghost { font-size: 12px; color: rgba(255,255,255,0.32); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: color .2s; padding: 15px 0; }
-    .btn-ghost:hover { color: #fff; }
+    .btn-ghost { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: color .2s; padding: 15px 0; }
+    .btn-ghost:hover { color: var(--ink); }
     .btn-ghost::after { content: '→'; transition: transform .2s; }
     .btn-ghost:hover::after { transform: translateX(4px); }
     .hero-kpis {
@@ -159,17 +162,17 @@
       opacity: 0; animation: fadeUp 1s var(--ease-out) 1.2s forwards;
     }
     .kpi { text-align: right; }
-    .kpi-n { font-family: var(--serif); font-size: 42px; color: #fff; line-height: 1; margin-bottom: 6px; }
-    .kpi-l { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.22); }
+    .kpi-n { font-family: var(--serif); font-size: 42px; color: var(--ink); line-height: 1; margin-bottom: 6px; }
+    .kpi-l { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
     /* Scroll indicator */
     .hero-scroll {
       position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
       z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 8px;
       opacity: 0; animation: fadeIn 1s ease 1.8s forwards;
     }
-    .hero-scroll span { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.2); }
-    .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.15); position: relative; overflow: hidden; }
-    .scroll-line::after { content:''; position:absolute; top:-100%; left:0; width:100%; height:100%; background: var(--blue-l); animation: scrollDown 2s ease-in-out 2s infinite; }
+    .hero-scroll span { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .scroll-line { width: 1px; height: 40px; background: rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+    .scroll-line::after { content:''; position:absolute; top:-100%; left:0; width:100%; height:100%; background: var(--blue); animation: scrollDown 2s ease-in-out 2s infinite; }
     @keyframes scrollDown { 0%{top:-100%} 100%{top:100%} }
 
     @keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
@@ -462,7 +465,7 @@
       padding: 40px 48px;
       border: 1px solid rgba(56,96,244,0.15);
       background: rgba(56,96,244,0.03);
-      display: flex; align-items: center; justify-content: space-between; gap: 40px;
+      display: flex; align-items: center; justify-content: center;
       position: relative; overflow: hidden;
     }
     .proc-promise::before {
@@ -470,13 +473,13 @@
       width: 200px; height: 200px;
       background: radial-gradient(circle, rgba(56,96,244,0.08) 0%, transparent 70%);
     }
-    .proc-promise p { font-family: var(--serif); font-size: clamp(18px,2vw,26px); font-style: italic; color: var(--blue-l); max-width: 60ch; }
-    .proc-promise span { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.18); flex-shrink: 0; }
+    .proc-promise p { font-family: var(--serif); font-size: clamp(13px,1.4vw,22px); font-style: italic; color: var(--blue-l); white-space: nowrap; width: 100%; text-align: center; }
     @media (max-width: 960px) {
       .proc-wrap { padding: 60px 28px; }
       .proc-steps { grid-template-columns: 1fr 1fr; gap: 32px 16px; }
       .proc-track { display: none; }
       .proc-promise { flex-direction: column; }
+      .proc-promise p { white-space: normal; font-size: clamp(13px,3.2vw,18px); }
     }
 
     /* ── OFFERS ── */
@@ -540,10 +543,10 @@
     .why-item:hover { background: var(--blue-bg); }
     .why-num {
       font-family: var(--serif); font-size: 48px; font-weight: 400;
-      color: rgba(56,96,244,0.08); line-height: 1; margin-bottom: 12px;
+      color: rgba(56,96,244,0.30); line-height: 1; margin-bottom: 12px;
       transition: color .3s;
     }
-    .why-item:hover .why-num { color: rgba(56,96,244,0.15); }
+    .why-item:hover .why-num { color: rgba(56,96,244,0.50); }
     .why-item h4 { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
     .why-item p { font-size: 12px; line-height: 1.7; color: var(--muted); }
 
@@ -622,7 +625,7 @@
     .contact-left .body-l { color: rgba(255,255,255,0.35); margin-bottom: 48px; }
     .contact-detail { margin-bottom: 28px; }
     .c-lbl { font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--blue-l); margin-bottom: 6px; display: block; opacity: 0.7; }
-    .c-val { font-family: var(--serif); font-size: 18px; color: #fff; text-decoration: none; transition: color .2s; }
+    .c-val { font-family: var(--font); font-size: 15px; font-weight: 400; color: #fff; text-decoration: none; transition: color .2s; line-height: 1.6; }
     .c-val:hover { color: var(--blue-l); }
     .fg { margin-bottom: 20px; }
     .fg label { font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255,255,255,0.28); display: block; margin-bottom: 8px; }
@@ -637,16 +640,20 @@
     .fg textarea { min-height: 110px; resize: vertical; }
     .fg select option { background: var(--ink); }
     .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .submit { width: 100%; background: var(--blue); color: #fff; border: none; cursor: pointer; font-family: var(--font); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 16px; border-radius: 6px; transition: background .25s, transform .2s; margin-top: 8px; }
-    .submit:hover { background: var(--blue-d); transform: translateY(-1px); }
+    .submit { width: 100%; background: var(--blue); color: #fff; border: none; cursor: pointer; font-family: var(--font); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 16px; border-radius: 6px; transition: background .25s, transform .2s, opacity .2s; margin-top: 8px; }
+    .submit:hover:not(:disabled) { background: var(--blue-d); transform: translateY(-1px); }
+    .submit:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .form-status { margin-top: 16px; padding: 16px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; display: none; }
+    .form-status.success { display: block; background: rgba(56,96,244,0.12); border: 1px solid rgba(56,96,244,0.3); color: var(--blue-l); }
+    .form-status.error   { display: block; background: rgba(220,50,50,0.1);  border: 1px solid rgba(220,50,50,0.3);  color: #f87a7a; }
 
     /* ── FOOTER ── */
     footer { background: var(--ink-2,#10162A); padding: 48px 72px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 24px; }
-    .footer-logo img { height: 24px; filter: brightness(0) invert(1); opacity: 0.25; }
+    .footer-logo img { height: 32px; filter: brightness(0) invert(1); }
     .footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
-    .footer-links a { font-size: 11px; color: rgba(255,255,255,0.18); text-decoration: none; letter-spacing: 0.08em; transition: color .2s; }
-    .footer-links a:hover { color: rgba(255,255,255,0.55); }
-    .footer-copy { font-size: 11px; color: rgba(255,255,255,0.1); }
+    .footer-links a { font-size: 11px; color: rgba(255,255,255,0.72); text-decoration: none; letter-spacing: 0.08em; transition: color .2s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy { font-size: 11px; color: rgba(255,255,255,0.55); }
 
     /* ── REVEAL ── */
     .r { opacity:0; transform:translateY(28px); transition: opacity .85s var(--ease-out), transform .85s var(--ease-out); }
@@ -655,6 +662,40 @@
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+
+    /* ── CURSEUR PERSONNALISÉ ── */
+    @media (hover: hover) and (pointer: fine) {
+      *, *::before, *::after { cursor: none !important; }
+      .cursor-dot {
+        position: fixed; z-index: 9999;
+        width: 7px; height: 7px;
+        background: var(--blue);
+        border-radius: 50%;
+        transform: translate(-50%,-50%);
+        pointer-events: none;
+        transition: opacity .2s, width .25s var(--ease-out), height .25s var(--ease-out), background .2s;
+        will-change: left, top;
+      }
+      .cursor-ring {
+        position: fixed; z-index: 9998;
+        width: 36px; height: 36px;
+        border: 1.5px solid rgba(56,96,244,0.45);
+        border-radius: 50%;
+        transform: translate(-50%,-50%);
+        pointer-events: none;
+        transition: width .35s var(--ease-out), height .35s var(--ease-out), border-color .25s, background .25s, opacity .2s;
+        will-change: left, top;
+      }
+      .cursor-ring.hover {
+        width: 54px; height: 54px;
+        border-color: var(--blue);
+        background: rgba(56,96,244,0.06);
+      }
+      .cursor-dot.active {
+        width: 10px; height: 10px;
+        background: var(--blue-d);
+      }
     }
 
     /* ── RESPONSIVE ── */
@@ -787,7 +828,7 @@
 <!-- NAV -->
 <nav class="site-nav" aria-label="Navigation principale">
   <a class="nav-logo" href="#" aria-label="Accueil Autonomous Design">
-    <img src="logo.png" alt="Autonomous Design">
+    <img src="logo-ad-transparent.png" alt="Autonomous Design">
   </a>
   <ul class="nav-links">
     <li><a href="#services">Services</a></li>
@@ -803,15 +844,16 @@
 
 <!-- ── 1. HERO ── -->
 <section class="hero" aria-label="Bannière principale">
-  <div class="hero-bg" aria-hidden="true"></div>
-  <div class="hero-overlay" aria-hidden="true"></div>
-  <div class="hero-grain" aria-hidden="true"></div>
+  <canvas id="smokeCanvas" aria-hidden="true"></canvas>
 
-
+  <!-- Logo watermark fixe -->
+  <div class="hero-logo-watermark" aria-hidden="true">
+    <img src="logo-ad-transparent.png" alt="">
+  </div>
 
   <div class="hero-content">
     <div class="hero-tag"><span></span>Agence Web — Belgique</div>
-    <h1>Votre présence en ligne,<br><em>de A à Z.</em></h1>
+    <h1>Votre site, la vitrine<br><em>de votre savoir-faire.</em></h1>
     <p class="hero-sub">Création, hébergement, maintenance et accompagnement digital pour les PME belges. Un seul interlocuteur. Un service qui dure.</p>
     <div class="hero-btns">
       <a href="#contact" class="btn-blue">Demander un devis</a>
@@ -820,8 +862,8 @@
   </div>
 
   <div class="hero-kpis" aria-label="Chiffres clés">
-    <div class="kpi"><div class="kpi-n">7j</div><div class="kpi-l">Délai moyen</div></div>
-    <div class="kpi"><div class="kpi-n">700€</div><div class="kpi-l">À partir de</div></div>
+    <div class="kpi"><div class="kpi-n">48H</div><div class="kpi-l">Délai moyen</div></div>
+    <div class="kpi"><div class="kpi-n">3-4×</div><div class="kpi-l">Moins cher que le marché</div></div>
     <div class="kpi"><div class="kpi-n">BE</div><div class="kpi-l">Basés en Belgique</div></div>
   </div>
 
@@ -1062,8 +1104,7 @@
     </div>
 
     <div class="proc-promise" id="procPromise">
-      <p>"Nous ne disparaissons pas une fois le site livré. Nous restons votre partenaire digital dans la durée."</p>
-      <span>Notre engagement</span>
+      <p id="procPromiseText">"Nous ne disparaissons pas une fois le site livré. Nous restons votre partenaire digital dans la durée."</p>
     </div>
   </div>
 </section>
@@ -1125,7 +1166,7 @@
       <a href="#contact" class="plan-cta plan-cta-outline">Nous contacter</a>
     </div>
   </div>
-  <p class="plan-note r">Création de site à partir de 700€ · <a href="#contact" style="color:var(--blue);text-decoration:none;">Demander un devis personnalisé →</a></p>
+  <p class="plan-note r">Création de site <strong style="color:var(--blue)">3 à 4× moins cher que le marché</strong> · <a href="#contact" style="color:var(--blue);text-decoration:none;">Demander un devis personnalisé →</a></p>
 </section>
 
 <!-- ── 6. POURQUOI NOUS ── -->
@@ -1147,7 +1188,7 @@
       </div>
       <div class="why-item">
         <div class="why-num">02</div>
-        <h4>Livraison en 7 jours</h4>
+        <h4>Livraison rapide</h4>
         <p>On respecte nos délais parce que votre temps a de la valeur.</p>
       </div>
       <div class="why-item">
@@ -1291,36 +1332,37 @@
       <h2>Prêt à lancer<br><em>votre présence en ligne ?</em></h2>
       <p class="body-l">Un appel de 30 minutes suffit. On écoute, on propose, on chiffre. Sans engagement, sans jargon.</p>
       <div class="contact-detail">
-        <span class="c-lbl">Email</span>
-        <a class="c-val" href="mailto:hello@autonomous-design.com">hello@autonomous-design.com</a>
+        <span class="c-lbl">Premier contact & devis</span>
+        <a class="c-val" href="mailto:contact@autonomous-design.com">contact@autonomous-design.com</a>
       </div>
       <div class="contact-detail">
-        <span class="c-lbl">WhatsApp / Téléphone</span>
-        <a class="c-val" href="tel:+32XXXXXXXX">+32 (0) XX XX XX XX</a>
+        <span class="c-lbl">Support clients</span>
+        <a class="c-val" href="mailto:support@autonomous-design.com">support@autonomous-design.com</a>
+      </div>
+      <div class="contact-detail">
+        <span class="c-lbl">Téléphone</span>
+        <a class="c-val" href="tel:+32478275793">+32 478 27 57 93</a>
+        <a class="c-val" href="tel:+32484789981" style="margin-top:6px;display:block;font-size:16px;">+32 484 78 99 81</a>
       </div>
       <div class="contact-detail">
         <span class="c-lbl">Basés en</span>
         <div class="c-val">Belgique</div>
       </div>
-      <div class="contact-detail">
-        <span class="c-lbl">Réponse garantie</span>
-        <div class="c-val">Sous 24 heures</div>
-      </div>
     </div>
-    <form class="contact-form r d1" action="#" method="POST" novalidate>
+    <form id="contactForm" class="contact-form r d1" novalidate>
       <div class="fg-row">
         <div class="fg">
           <label for="prenom">Prénom</label>
-          <input type="text" id="prenom" name="prenom" placeholder="Alexandre" autocomplete="given-name">
+          <input type="text" id="prenom" name="prenom" placeholder="Alexandre" autocomplete="given-name" required>
         </div>
         <div class="fg">
           <label for="nom">Nom</label>
-          <input type="text" id="nom" name="nom" placeholder="Dubois" autocomplete="family-name">
+          <input type="text" id="nom" name="nom" placeholder="Dubois" autocomplete="family-name" required>
         </div>
       </div>
       <div class="fg">
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="votre@email.com" autocomplete="email">
+        <input type="email" id="email" name="email" placeholder="votre@email.com" autocomplete="email" required>
       </div>
       <div class="fg">
         <label for="tel">Téléphone (optionnel)</label>
@@ -1342,7 +1384,8 @@
         <label for="message">Décrivez votre projet</label>
         <textarea id="message" name="message" placeholder="Mon activité est… Je cherche à… Mon budget est aux alentours de…"></textarea>
       </div>
-      <button type="submit" class="submit">Envoyer ma demande</button>
+      <button type="submit" class="submit" id="contactSubmit">Envoyer ma demande</button>
+      <div class="form-status" id="formStatus" role="alert"></div>
     </form>
   </div>
 </section>
@@ -1352,7 +1395,7 @@
 <!-- FOOTER -->
 <footer>
   <a href="#" aria-label="Retour en haut de page">
-    <div class="footer-logo"><img src="logo.png" alt="Autonomous Design"></div>
+    <div class="footer-logo"><img src="logo-ad-transparent.png" alt="Autonomous Design"></div>
   </a>
   <div class="footer-links">
     <a href="#services">Services</a>
@@ -1595,7 +1638,7 @@
       busy = true;
       // Fade out text + visual
       gsap.to([srvText, visual], {
-        opacity: 0, y: -14, filter: 'blur(4px)',
+        opacity: 0, y: -14,
         duration: 0.22, ease: 'power2.in',
         onComplete() {
           // Swap content
@@ -1605,8 +1648,8 @@
           renderItems(d);
           // Fade in
           gsap.fromTo([srvText, visual],
-            { opacity: 0, y: 18, filter: 'blur(4px)' },
-            { opacity: 1, y: 0, filter: 'blur(0px)',
+            { opacity: 0, y: 18 },
+            { opacity: 1, y: 0,
               duration: 0.52, ease: 'power3.out',
               onComplete() {
                 // Stagger list items
@@ -1811,6 +1854,319 @@
   } else {
     window.addEventListener('load', tryInitGSAP);
   }
+
+  // ── ELEGANT SMOKE — rubans & volutes fines (style photographie de fumée)
+  (function(){
+    const canvas = document.getElementById('smokeCanvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    function resize(){
+      W = canvas.width = canvas.offsetWidth;
+      H = canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Chemin sinusoïdal en couches — crée l'effet de volute organique
+    function spineX(norm, t, col, ph){
+      return col
+        + Math.sin(norm*Math.PI*1.55 + t*0.48 + ph)       * W*0.092
+        + Math.sin(norm*Math.PI*2.85 + t*0.72 + ph*1.35)  * W*0.042
+        + Math.sin(norm*Math.PI*5.1  + t*1.05 + ph*0.65)  * W*0.014
+        + Math.sin(norm*Math.PI*9.3  + t*1.65 + ph*1.75)  * W*0.004;
+    }
+
+    // Dessine un ruban de fumée avec bords dégradés (feathered ribbon)
+    function drawRibbon(colX, ph, maxW, alpha, t){
+      const N = 160;
+      const pts = [];
+      for(let i=0; i<=N; i++){
+        const norm = i/N;
+        pts.push({
+          x: spineX(norm, t, colX*W, ph),
+          y: H*(1 - norm*0.96),
+          norm
+        });
+      }
+
+      // — Ruban principal : sections quad avec gradient transversal —
+      for(let i=0; i<pts.length-1; i++){
+        const a0 = pts[i], b0 = pts[i+1];
+        const norm = (a0.norm + b0.norm) * 0.5;
+
+        // Enveloppe de largeur : 0 au bas → pic (30%) → effilé au sommet
+        const env = Math.pow(Math.sin(norm*Math.PI), 0.65) * (1-norm*0.52);
+        const w = maxW * env;
+        if(w < 0.4) continue;
+
+        // Enveloppe d'opacité : montée rapide, descente douce
+        const aEnv = Math.sin(Math.min(norm*2.2, Math.PI*0.94)) * (1-norm*0.60);
+        const a = alpha * Math.max(0, aEnv);
+        if(a < 0.006) continue;
+
+        // Direction perpendiculaire (normale au chemin)
+        const dx = b0.x - a0.x, dy = b0.y - a0.y;
+        const len = Math.sqrt(dx*dx + dy*dy) || 1;
+        const nx = -dy/len, ny = dx/len;
+
+        const x0=a0.x-nx*w, y0=a0.y-ny*w;
+        const x1=b0.x-nx*w, y1=b0.y-ny*w;
+        const x2=b0.x+nx*w, y2=b0.y+ny*w;
+        const x3=a0.x+nx*w, y3=a0.y+ny*w;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x0,y0); ctx.lineTo(x1,y1);
+        ctx.lineTo(x2,y2); ctx.lineTo(x3,y3);
+        ctx.closePath();
+
+        // Gradient transversal : transparent sur les bords, opaque au centre
+        const grd = ctx.createLinearGradient(x0,y0, x3,y3);
+        grd.addColorStop(0,    `rgba(14,14,18,0)`);
+        grd.addColorStop(0.12, `rgba(18,18,23,${a*0.45})`);
+        grd.addColorStop(0.38, `rgba(24,24,30,${a*0.85})`);
+        grd.addColorStop(0.5,  `rgba(28,28,36,${a})`);
+        grd.addColorStop(0.62, `rgba(24,24,30,${a*0.85})`);
+        grd.addColorStop(0.88, `rgba(18,18,23,${a*0.45})`);
+        grd.addColorStop(1,    `rgba(14,14,18,0)`);
+        ctx.fillStyle = grd;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // — Volutes fines sur les bords (thin wispy tendrils) —
+      const wispData = [
+        { off: maxW*0.60,  lw: 0.55, fl: 1.0 },
+        { off:-maxW*0.70,  lw: 0.45, fl: 1.6 },
+        { off: maxW*1.10,  lw: 0.35, fl: 2.3 },
+        { off:-maxW*1.20,  lw: 0.30, fl: 3.1 },
+        { off: maxW*0.28,  lw: 0.50, fl: 0.7 },
+        { off:-maxW*0.38,  lw: 0.40, fl: 2.8 },
+      ];
+
+      wispData.forEach((wd, wi) => {
+        ctx.save();
+        ctx.beginPath();
+        let first = true;
+        for(let i=3; i<pts.length; i++){
+          const {x, y, norm} = pts[i];
+          // Flutter haute fréquence pour l'effet de volute
+          const flutter = Math.sin(norm*Math.PI*16 + t*2.4 + ph + wi*2.1)*2.8
+                        + Math.sin(norm*Math.PI*28 + t*3.1 + ph + wi*1.3)*1.0;
+          const xp = x + wd.off + flutter;
+          if(first){ ctx.moveTo(xp,y); first=false; }
+          else       ctx.lineTo(xp,y);
+        }
+        const wg = ctx.createLinearGradient(0, H, 0, H*0.08);
+        const wa = alpha * 0.30;
+        wg.addColorStop(0,    `rgba(14,14,18,0)`);
+        wg.addColorStop(0.08, `rgba(18,18,24,${wa})`);
+        wg.addColorStop(0.50, `rgba(18,18,24,${wa*0.65})`);
+        wg.addColorStop(0.80, `rgba(18,18,24,${wa*0.22})`);
+        wg.addColorStop(1,    `rgba(14,14,18,0)`);
+        ctx.strokeStyle = wg;
+        ctx.lineWidth = wd.lw;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    // Colonnes de fumée — position, phase, largeur max, opacité
+    const ribbons = [
+      { x:0.37, ph:0,    mW:58, a:0.42 }, // colonne principale
+      { x:0.35, ph:1.0,  mW:30, a:0.26 }, // couche secondaire
+      { x:0.39, ph:2.3,  mW:16, a:0.18 }, // couche tertiaire
+      { x:0.64, ph:1.6,  mW:38, a:0.20 }, // deuxième colonne
+      { x:0.66, ph:3.0,  mW:18, a:0.13 }, // sous-couche
+      { x:0.17, ph:0.8,  mW:24, a:0.11 }, // accent gauche
+      { x:0.84, ph:2.5,  mW:20, a:0.09 }, // accent droit
+    ];
+
+    let t = 0;
+    function animate(){
+      t += 0.0055;
+      ctx.clearRect(0,0,W,H);
+      ribbons.forEach(r => drawRibbon(r.x, r.ph, r.mW, r.a, t));
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
+
+  // ── FIT PROCESS PROMISE TEXT (pleine largeur, une ligne)
+  (function(){
+    const p = document.getElementById('procPromiseText');
+    const box = document.getElementById('procPromise');
+    if(!p || !box) return;
+    p.style.whiteSpace = 'nowrap';
+    function fit(){
+      if(window.innerWidth <= 960){ p.style.whiteSpace='normal'; p.style.fontSize=''; return; }
+      p.style.whiteSpace = 'nowrap';
+      const maxW = box.clientWidth - 96; // padding 48px × 2
+      let lo=10, hi=80, mid;
+      for(let i=0;i<26;i++){
+        mid=(lo+hi)/2;
+        p.style.fontSize=mid+'px';
+        p.scrollWidth<=maxW ? (lo=mid) : (hi=mid);
+      }
+      p.style.fontSize = lo+'px';
+    }
+    fit();
+    window.addEventListener('resize', fit);
+  })();
+
+  // ── CUSTOM CURSOR
+  (function(){
+    var isFine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if(!isFine) return;
+
+    var dot  = document.createElement('div');
+    dot.className = 'cursor-dot';
+    var ring = document.createElement('div');
+    ring.className = 'cursor-ring';
+    document.body.appendChild(dot);
+    document.body.appendChild(ring);
+
+    var mx=window.innerWidth/2, my=window.innerHeight/2;
+    var rx=mx, ry=my;
+
+    document.addEventListener('mousemove', function(e){
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx+'px';
+      dot.style.top  = my+'px';
+    });
+
+    (function animRing(){
+      rx += (mx-rx)*0.13;
+      ry += (my-ry)*0.13;
+      ring.style.left = rx+'px';
+      ring.style.top  = ry+'px';
+      requestAnimationFrame(animRing);
+    })();
+
+    document.querySelectorAll('a,button,[role="button"]').forEach(function(el){
+      el.addEventListener('mouseenter', function(){ ring.classList.add('hover'); dot.classList.add('active'); });
+      el.addEventListener('mouseleave', function(){ ring.classList.remove('hover'); dot.classList.remove('active'); });
+    });
+
+    document.addEventListener('mouseleave', function(){ dot.style.opacity='0'; ring.style.opacity='0'; });
+    document.addEventListener('mouseenter', function(){ dot.style.opacity='1'; ring.style.opacity='1'; });
+  })();
+
+  // ── FORMULAIRE CONTACT → envoi immédiat par mailto
+  (function(){
+    const form   = document.getElementById('contactForm');
+    const btn    = document.getElementById('contactSubmit');
+    const status = document.getElementById('formStatus');
+    if(!form || !btn || !status) return;
+
+    const DEST = 'contact@autonomous-design.com';
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+
+      // Validation minimale
+      const prenom  = form.querySelector('#prenom').value.trim();
+      const nom     = form.querySelector('#nom').value.trim();
+      const email   = form.querySelector('#email').value.trim();
+      const tel     = form.querySelector('#tel').value.trim();
+      const service = form.querySelector('#service').value;
+      const message = form.querySelector('#message').value.trim();
+
+      if(!prenom || !email){
+        showStatus('error', 'Veuillez renseigner au moins votre prénom et votre adresse email.');
+        return;
+      }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        showStatus('error', 'L\'adresse email semble incorrecte.');
+        return;
+      }
+
+      // Composition de l'email
+      const subject = 'Nouvelle demande — Autonomous Design';
+      const body = [
+        'Prénom    : ' + prenom,
+        'Nom       : ' + (nom     || '—'),
+        'Email     : ' + email,
+        'Téléphone : ' + (tel     || '—'),
+        'Service   : ' + (service || '—'),
+        '',
+        'Message :',
+        message || '—',
+        '',
+        '---',
+        'Envoyé depuis le formulaire autonomous-design.com'
+      ].join('\n');
+
+      const mailto = 'mailto:' + DEST
+        + '?subject=' + encodeURIComponent(subject)
+        + '&body='    + encodeURIComponent(body);
+
+      // Ouvre le client mail avec l'email pré-rempli
+      window.location.href = mailto;
+
+      // Feedback visuel
+      showStatus('success', '✓ Votre messagerie s\'ouvre avec l\'email pré-rempli. Cliquez simplement sur Envoyer !');
+      btn.textContent = 'Email préparé ✓';
+      btn.disabled = true;
+
+      // Réinitialise le formulaire après 4 secondes
+      setTimeout(function(){
+        form.reset();
+        btn.textContent = 'Envoyer ma demande';
+        btn.disabled = false;
+        status.className = 'form-status';
+      }, 4000);
+    });
+
+    function showStatus(type, msg){
+      status.className = 'form-status ' + type;
+      status.textContent = msg;
+      status.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+  })();
+
+  // ── JSON-LD SCHEMA (SEO LocalBusiness)
+  (function(){
+    var s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "LocalBusiness",
+          "name": "Autonomous Design",
+          "description": "Agence web belge spécialisée dans la création de sites web sur mesure pour PME. Hébergement, maintenance et accompagnement digital.",
+          "url": "https://autonomous-design.com",
+          "telephone": ["+32478275793", "+32484789981"],
+          "email": "contact@autonomous-design.com",
+          "address": { "@type": "PostalAddress", "addressCountry": "BE" },
+          "areaServed": "BE",
+          "priceRange": "€€",
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Services web",
+            "itemListElement": [
+              {"@type":"Offer","itemOffered":{"@type":"Service","name":"Création de site web sur mesure"}},
+              {"@type":"Offer","itemOffered":{"@type":"Service","name":"Hébergement web professionnel"}},
+              {"@type":"Offer","itemOffered":{"@type":"Service","name":"Maintenance web"}},
+              {"@type":"Offer","itemOffered":{"@type":"Service","name":"SEO et référencement naturel"}}
+            ]
+          },
+          "sameAs": ["https://autonomous-design.com"]
+        },
+        {
+          "@type": "WebSite",
+          "name": "Autonomous Design",
+          "url": "https://autonomous-design.com"
+        }
+      ]
+    });
+    document.head.appendChild(s);
+  })();
 </script>
 
 </body>
