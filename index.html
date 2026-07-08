@@ -2094,7 +2094,7 @@
 
       const data = new FormData(form);
 
-      fetch('/', { method: 'POST', headers: { 'Accept': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data).toString() })
+      fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data).toString() })
         .then(function(res){
           if(res.ok){
             showStatus('success', 'Demande envoyée ! Nous vous répondons sous 24H.');
