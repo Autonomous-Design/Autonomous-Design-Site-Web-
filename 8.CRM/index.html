@@ -1,0 +1,3109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Autonomous-Design</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%234F46E5'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-size='28' font-weight='700' fill='white'>C</text></svg>"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+:root{
+  --bg:#F8FAFC;
+  --surface:#FFFFFF;
+  --surface2:#F1F5F9;
+  --border:rgba(0,0,0,0.08);
+  --accent:#4F46E5;
+  --accent-h:#6366F1;
+  --green:#16A34A;
+  --green-bg:rgba(22,163,74,0.1);
+  --red:#DC2626;
+  --red-bg:rgba(220,38,38,0.1);
+  --amber:#D97706;
+  --amber-bg:rgba(217,119,6,0.1);
+  --blue:#2563EB;
+  --blue-bg:rgba(37,99,235,0.1);
+  --purple:#7C3AED;
+  --purple-bg:rgba(124,58,237,0.1);
+  --text:#0F172A;
+  --text-soft:rgba(15,23,42,0.65);
+  --text-muted:rgba(15,23,42,0.4);
+  --nav-w:220px;
+  --radius:10px;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-weight:400;line-height:1.6;min-height:100dvh;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit}
+input,textarea,select{font-family:inherit}
+
+/* ── PASSWORD SCREEN ── */
+#password-screen{display:flex;align-items:center;justify-content:center;min-height:100dvh;padding:2rem}
+.pw-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:3rem 2.5rem;width:100%;max-width:380px;text-align:center}
+.pw-logo{font-size:2rem;font-weight:800;color:var(--accent);letter-spacing:-0.03em;margin-bottom:0.4rem}
+.pw-sub{font-size:0.82rem;color:var(--text-muted);margin-bottom:2rem}
+.pw-input-wrap{position:relative;margin-bottom:1rem}
+.pw-input{width:100%;padding:0.85rem 1rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:1rem;outline:none;box-sizing:border-box;text-align:center;letter-spacing:0.1em}
+.pw-input:focus{border-color:var(--accent)}
+.pw-btn{width:100%;padding:0.9rem;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;font-size:0.95rem;font-weight:600;cursor:pointer;transition:opacity 0.2s}
+.pw-btn:hover{opacity:0.88}
+.pw-error{font-size:0.8rem;color:#ef4444;margin-top:0.6rem;min-height:1.2em}
+
+/* ── SETUP SCREEN ── */
+#setup{display:none;align-items:center;justify-content:center;min-height:100dvh;padding:2rem}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:3rem 2.5rem;width:100%;max-width:400px;text-align:center}
+.setup-logo{font-size:2rem;font-weight:800;color:var(--accent);letter-spacing:-0.03em;margin-bottom:0.4rem}
+.setup-sub{font-size:0.82rem;color:var(--text-muted);margin-bottom:2.5rem}
+.setup-label{font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem;display:block}
+.user-btns{display:flex;flex-direction:column;gap:0.8rem}
+.user-btn{padding:1rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:1rem;font-weight:500;transition:all 0.2s}
+.user-btn:hover{border-color:var(--accent);background:rgba(79,70,229,0.1)}
+
+/* ── LAYOUT ── */
+#app{display:none;min-height:100dvh}
+.layout{display:flex;min-height:100dvh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--nav-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar__logo{padding:1.4rem 1.2rem 1rem;border-bottom:1px solid var(--border)}
+.sidebar__logo-name{font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:-0.02em}
+.sidebar__user{font-size:0.72rem;color:var(--text-muted);margin-top:0.2rem}
+.sidebar__nav{flex:1;padding:1rem 0.7rem;display:flex;flex-direction:column;gap:0.2rem}
+.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;font-size:0.85rem;color:var(--text-soft);transition:all 0.15s;cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(0,0,0,0.05);color:var(--text)}
+.nav-item.active{background:rgba(79,70,229,0.15);color:var(--accent-h);font-weight:500}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:0.65rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:99px;min-width:18px;text-align:center}
+.sidebar__footer{padding:0.8rem 1rem;border-top:1px solid var(--border)}
+.sidebar__footer button{font-size:0.75rem;color:var(--text-muted);background:none;border:none;cursor:pointer;transition:color 0.2s}
+.sidebar__footer button:hover{color:var(--text)}
+
+/* ── MAIN ── */
+.main{margin-left:var(--nav-w);flex:1;padding:2rem 2.5rem;min-height:100dvh}
+.page{display:none}
+.page.active{display:block}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;gap:1rem}
+.topbar h1{font-size:1.4rem;font-weight:700;letter-spacing:-0.02em}
+.topbar-actions{display:flex;gap:0.7rem;align-items:center}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;border-radius:8px;font-size:0.82rem;font-weight:500;border:none;transition:all 0.15s;cursor:pointer}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-h)}
+.btn-ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn-ghost:hover{background:rgba(0,0,0,0.05);color:var(--text)}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.76rem;border-radius:6px}
+.btn-green{background:var(--green-bg);color:#16A34A;border:1px solid rgba(22,163,74,0.2)}
+.btn-green:hover{background:rgba(22,163,74,0.18)}
+.btn-red{background:var(--red-bg);color:#DC2626;border:1px solid rgba(220,38,38,0.2)}
+.btn-red:hover{background:rgba(220,38,38,0.18)}
+.btn-amber{background:var(--amber-bg);color:#B45309;border:1px solid rgba(217,119,6,0.2)}
+.btn-amber:hover{background:rgba(217,119,6,0.18)}
+.btn-blue{background:var(--blue-bg);color:#2563EB;border:1px solid rgba(37,99,235,0.2)}
+.btn-blue:hover{background:rgba(37,99,235,0.18)}
+.btn-purple{background:var(--purple-bg);color:#7C3AED;border:1px solid rgba(124,58,237,0.2)}
+.btn-purple:hover{background:rgba(124,58,237,0.18)}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem}
+.stat-card__label{font-size:0.72rem;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem}
+.stat-card__value{font-size:1.9rem;font-weight:800;letter-spacing:-0.03em;line-height:1}
+.stat-card__sub{font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem}
+.stat-card.accent .stat-card__value{color:var(--accent-h)}
+.stat-card.green .stat-card__value{color:#16A34A}
+.stat-card.amber .stat-card__value{color:#B45309}
+.stat-card.blue .stat-card__value{color:#2563EB}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem}
+.card-title{font-size:0.88rem;font-weight:600;margin-bottom:1.2rem;color:var(--text-soft)}
+
+/* ── FILTERS BAR ── */
+.filters{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.2rem;align-items:center}
+.filter-input{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:0.5rem 0.85rem;font-size:0.82rem;outline:none;transition:border-color 0.2s}
+.filter-input:focus{border-color:var(--accent)}
+.filter-input::placeholder{color:var(--text-muted)}
+.filter-select{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:0.5rem 0.85rem;font-size:0.82rem;outline:none;cursor:pointer}
+.filter-select option{background:var(--surface2)}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{width:100%;padding-left:2.2rem}
+.search-icon{position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.9rem;pointer-events:none}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--surface2);padding:0.7rem 1rem;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(0,0,0,0.025)}
+tbody td{padding:0.75rem 1rem;font-size:0.83rem;color:var(--text-soft);vertical-align:middle}
+tbody td.primary{color:var(--text);font-weight:500}
+.table-actions{display:flex;gap:0.4rem;opacity:0}
+tr:hover .table-actions{opacity:1}
+
+/* ── STATUS BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.6rem;border-radius:99px;font-size:0.72rem;font-weight:600;white-space:nowrap}
+.badge-to_call{background:var(--blue-bg);color:#2563EB}
+.badge-no_answer{background:var(--amber-bg);color:#B45309}
+.badge-callback{background:var(--purple-bg);color:#6D28D9}
+.badge-not_interested{background:var(--red-bg);color:#DC2626}
+.badge-meeting_booked{background:var(--green-bg);color:#16A34A}
+.badge-converted{background:rgba(16,185,129,0.12);color:#059669}
+.badge-voicemail{background:rgba(107,114,128,0.12);color:#4B5563}
+.badge-post_rdv{background:rgba(234,179,8,0.12);color:#B45309}
+.badge-site_delivered{background:rgba(16,185,129,0.12);color:#059669}
+.badge-maintenance{background:rgba(139,92,246,0.12);color:#6D28D9}
+.badge-interested{background:var(--blue-bg);color:#2563EB}
+.badge-has_website{background:rgba(20,184,166,0.12);color:#0F766E}
+
+/* ── PIPELINE CARDS ── */
+.pipeline-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;margin-bottom:0.7rem;transition:border-color 0.2s;cursor:pointer}
+.pipeline-card:hover{border-color:var(--accent)}
+.pipeline-card__name{font-weight:600;font-size:0.9rem}
+.pipeline-card__detail{font-size:0.78rem;color:var(--text-muted);margin-top:0.15rem}
+.pipeline-card__url{font-size:0.78rem;color:#059669;margin-top:0.2rem;word-break:break-all}
+.pipeline-stage-btns{display:flex;flex-direction:column;gap:0.5rem;margin:1rem 0}
+.stage-btn{padding:0.7rem 1rem;border-radius:8px;border:1px solid;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left}
+
+/* ── CONFETTI OVERLAY ── */
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;width:100%;height:100%}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:90dvh;overflow-y:auto}
+.modal-lg{max-width:780px}
+.modal-header{padding:1.4rem 1.6rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-header h2{font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:0.2rem;transition:color 0.2s;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:1.4rem 1.6rem}
+.modal-footer{padding:1rem 1.6rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.7rem}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:0.35rem}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)}
+.form-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:0.6rem 0.85rem;font-size:0.85rem;outline:none;transition:border-color 0.2s;width:100%}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--text-muted)}
+.form-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:0.6rem 0.85rem;font-size:0.85rem;outline:none;cursor:pointer;width:100%}
+.form-select option{background:var(--surface2)}
+textarea.form-input{resize:vertical;min-height:80px;line-height:1.6}
+.toggle-row{display:flex;align-items:center;gap:0.7rem;margin-top:0.3rem}
+.toggle{width:36px;height:20px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0}
+.toggle.on{background:var(--accent);border-color:var(--accent)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.2s}
+.toggle.on::after{left:18px}
+
+/* ── CALL ACTIONS ── */
+.call-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:0.6rem;margin:1.2rem 0}
+.call-action-btn{padding:0.85rem;border-radius:var(--radius);border:1px solid;font-size:0.82rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:0.3rem;transition:all 0.15s;cursor:pointer}
+.call-action-btn .icon{font-size:1.3rem}
+
+/* ── CALL HISTORY ── */
+.call-history{display:flex;flex-direction:column;gap:0.8rem;margin-top:1rem}
+.call-item{background:var(--surface2);border-radius:8px;padding:0.9rem 1rem;border-left:3px solid var(--border)}
+.call-item.no_answer{border-left-color:var(--amber)}
+.call-item.not_interested{border-left-color:var(--red)}
+.call-item.callback{border-left-color:var(--purple)}
+.call-item.meeting_booked{border-left-color:var(--green)}
+.call-item.voicemail{border-left-color:#6B7280}
+.call-item.interested{border-left-color:var(--blue)}
+.call-meta{display:flex;align-items:center;gap:0.7rem;margin-bottom:0.4rem;flex-wrap:wrap}
+.call-by{font-size:0.75rem;font-weight:600;color:var(--text-soft)}
+.call-date{font-size:0.72rem;color:var(--text-muted)}
+.call-comment{font-size:0.82rem;color:var(--text-soft);line-height:1.5}
+
+/* ── CALLBACK LIST ── */
+.callback-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;margin-bottom:0.7rem;transition:border-color 0.2s}
+.callback-item:hover{border-color:var(--accent)}
+.callback-time{font-size:1.3rem;font-weight:800;color:var(--purple);letter-spacing:-0.02em;min-width:60px}
+.callback-info{flex:1}
+.callback-name{font-weight:600;font-size:0.9rem}
+.callback-detail{font-size:0.78rem;color:var(--text-muted);margin-top:0.15rem}
+.callback-actions{display:flex;gap:0.5rem}
+.time-badge{font-size:0.7rem;font-weight:600;padding:0.25rem 0.6rem;border-radius:99px}
+.time-urgent{background:var(--red-bg);color:#DC2626}
+.time-soon{background:var(--amber-bg);color:#B45309}
+.time-ok{background:var(--purple-bg);color:#6D28D9}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:4rem 2rem;color:var(--text-muted)}
+.empty .icon{font-size:2.5rem;margin-bottom:0.8rem}
+.empty p{font-size:0.85rem}
+
+/* ── DATETIME PICKER MODAL ── */
+.time-presets{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem}
+.time-preset{background:var(--surface2);border:1px solid var(--border);color:var(--text-soft);border-radius:6px;padding:0.4rem 0.75rem;font-size:0.78rem;cursor:pointer;transition:all 0.15s}
+.time-preset:hover,.time-preset.selected{background:var(--purple-bg);border-color:var(--purple);color:#C4B5FD}
+
+/* ── PROSPECT DETAIL HEADER ── */
+.prospect-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem 1.6rem;margin-bottom:1.2rem}
+.prospect-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:0.8rem}
+.prospect-title{font-size:1.3rem;font-weight:700}
+.prospect-meta{display:flex;flex-wrap:wrap;gap:0.6rem;font-size:0.78rem;color:var(--text-muted)}
+.prospect-meta span{display:flex;align-items:center;gap:0.3rem}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);transition:transform 0.3s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:1.2rem}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+  .call-actions{grid-template-columns:repeat(2,1fr)}
+  .detail-grid{grid-template-columns:1fr}
+  .mob-menu-btn{display:flex!important}
+}
+.mob-menu-btn{display:none;background:none;border:none;color:var(--text);font-size:1.3rem;cursor:pointer;padding:0.3rem}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0.8rem 1.2rem;font-size:0.83rem;color:var(--text);z-index:500;transform:translateY(120%);transition:transform 0.3s;box-shadow:0 4px 16px rgba(0,0,0,0.12);max-width:320px}
+.toast.show{transform:translateY(0)}
+.toast.success{border-color:var(--green);color:#16A34A}
+.toast.error{border-color:var(--red);color:#DC2626}
+
+/* ── CALENDAR ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden}
+.cal-header{background:var(--surface2);padding:0.5rem;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:center}
+.cal-day{background:var(--surface);min-height:100px;padding:0.4rem;position:relative}
+.cal-day.other-month{opacity:0.35}
+.cal-day.today{background:rgba(79,70,229,0.08)}
+.cal-day-num{font-size:0.72rem;font-weight:600;color:var(--text-muted);margin-bottom:0.3rem}
+.cal-day.today .cal-day-num{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.68rem}
+.cal-event{padding:0.2rem 0.4rem;border-radius:4px;font-size:0.68rem;font-weight:500;margin-bottom:0.2rem;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-left:3px solid}
+.cal-event.visio{background:rgba(99,102,241,0.1);border-left-color:#4F46E5;color:#4F46E5}
+.cal-event.presentiel{background:rgba(16,185,129,0.1);border-left-color:#059669;color:#059669}
+.cal-event.callback{background:rgba(217,119,6,0.1);border-left-color:#B45309;color:#B45309}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{background:var(--surface2);border-radius:99px;height:8px;margin-top:0.6rem;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent-h));transition:width 0.6s cubic-bezier(0.32,0.72,0,1)}
+.goal-row{display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem}
+
+/* ── SCRIPT PANEL ── */
+.script-panel{background:rgba(79,70,229,0.08);border:1px solid rgba(79,70,229,0.2);border-radius:var(--radius);padding:1rem 1.2rem;margin:1rem 0}
+.script-toggle{background:none;border:none;color:var(--accent-h);font-size:0.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:0.4rem;padding:0;width:100%;text-align:left}
+.script-text{font-size:0.82rem;color:var(--text-soft);line-height:1.7;margin-top:0.8rem;display:none;white-space:pre-wrap}
+.script-text.open{display:block}
+
+/* ── SECTOR STATS ── */
+.sector-table{width:100%;border-collapse:collapse;font-size:0.78rem}
+.sector-table th{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);padding:0.4rem 0.6rem;border-bottom:1px solid var(--border);text-align:left}
+.sector-table td{padding:0.45rem 0.6rem;border-bottom:1px solid var(--border);color:var(--text-soft)}
+.sector-table tr:last-child td{border-bottom:none}
+.sector-table .rate{font-weight:700;color:var(--accent-h)}
+
+/* ── STALE ALERT ── */
+.stale-alert{background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.25);border-radius:var(--radius);padding:0.8rem 1rem;margin-bottom:1rem;font-size:0.8rem;color:#FCD34D;cursor:pointer}
+.stale-alert:hover{background:rgba(217,119,6,0.15)}
+
+/* ── GOOGLE BTN ── */
+.copy-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0 0.3rem;font-size:0.85rem;opacity:0;transition:opacity 0.15s;vertical-align:middle}
+tr:hover .copy-btn{opacity:1}
+.copy-btn:hover{color:#4285F4}
+
+/* ── LOADING ── */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-row{text-align:center;padding:3rem;color:var(--text-muted)}
+
+/* ── DARK MODE ── */
+body.dark{--bg:#0C0F14;--surface:#141820;--surface2:#1C2133;--border:rgba(255,255,255,0.07);--text:#E2E8F8;--text-soft:rgba(226,232,248,0.68);--text-muted:rgba(226,232,248,0.36);--accent:#6366F1;--accent-h:#818CF8}
+body.dark .sidebar{box-shadow:4px 0 24px rgba(0,0,0,0.5)}
+body.dark .modal{box-shadow:0 8px 48px rgba(0,0,0,0.6)}
+body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
+
+/* ── COMMAND PALETTE ── */
+#cmdPalette{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding-top:10vh;backdrop-filter:blur(8px)}
+#cmdPalette.open{display:flex}
+.cmd-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,0.35);overflow:hidden}
+.cmd-search-wrap{display:flex;align-items:center;gap:0.8rem;padding:0.9rem 1.2rem;border-bottom:1px solid var(--border)}
+.cmd-search-icon{font-size:1rem;color:var(--text-muted);flex-shrink:0}
+#cmdInput{flex:1;background:transparent;border:none;outline:none;font-size:1rem;color:var(--text);font-family:inherit}
+#cmdInput::placeholder{color:var(--text-muted)}
+.cmd-results{max-height:380px;overflow-y:auto;padding:0.35rem}
+.cmd-section{font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);padding:0.65rem 0.8rem 0.3rem}
+.cmd-result{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;transition:background 0.1s;font-size:0.85rem;color:var(--text-soft)}
+.cmd-result:hover,.cmd-result.selected{background:rgba(99,102,241,0.12);color:var(--text)}
+.cmd-icon{font-size:0.95rem;width:22px;text-align:center;flex-shrink:0}
+.cmd-label{flex:1;min-width:0}
+.cmd-hint{font-size:0.68rem;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:0.12rem 0.45rem;flex-shrink:0;font-family:inherit}
+.cmd-footer{padding:0.5rem 1rem;border-top:1px solid var(--border);display:flex;gap:1.2rem;font-size:0.67rem;color:var(--text-muted)}
+.cmd-footer span{display:flex;align-items:center;gap:0.3rem}
+.cmd-footer kbd{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:0.1rem 0.35rem;font-family:inherit;font-size:0.65rem}
+.cmd-empty{text-align:center;padding:2rem;color:var(--text-muted);font-size:0.85rem}
+
+/* ── KPI PAGE ── */
+.kpi-period-btns{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.kpi-period-btn{padding:0.44rem 1rem;border:none;background:transparent;color:var(--text-muted);font-size:0.8rem;font-weight:500;cursor:pointer;transition:all 0.15s;font-family:inherit}
+.kpi-period-btn.active{background:var(--accent);color:#fff}
+.kpi-period-btn:hover:not(.active){background:rgba(0,0,0,0.05);color:var(--text)}
+
+/* ── DARK MODE TOGGLE BTN ── */
+#darkModeBtn{font-size:0.75rem;color:var(--text-muted);background:none;border:none;cursor:pointer;transition:color 0.2s;display:block;margin-bottom:0.3rem}
+#darkModeBtn:hover{color:var(--text)}
+
+/* ── CLICKABLE STAT CARD ── */
+.stat-card.clickable{cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s,transform 0.15s}
+.stat-card.clickable:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(79,70,229,0.18);transform:translateY(-1px)}
+
+/* ── CALL COUNTER ── */
+.counter-person{display:flex;align-items:center;gap:0.8rem;padding:0.55rem 0;border-bottom:1px solid var(--border)}
+.counter-person:last-child{border-bottom:none;padding-bottom:0}
+.counter-name{flex:1;font-size:0.88rem;font-weight:500;color:var(--text-soft)}
+.counter-value{font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;color:var(--accent-h);min-width:44px;text-align:center;cursor:pointer}
+.counter-value:hover{opacity:0.75}
+.counter-btn{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);background:rgba(79,70,229,0.1);color:var(--accent);font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;line-height:1;flex-shrink:0}
+.counter-btn:hover{background:var(--accent);color:#fff}
+
+/* ── HOLIDAY ── */
+.cal-day.holiday{background:rgba(239,68,68,0.05)}
+.cal-holiday-name{font-size:0.58rem;color:#EF4444;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:0.2rem;letter-spacing:0.02em}
+
+/* ── CALENDAR STANDALONE EVENT ── */
+.cal-event.standalone{background:rgba(124,58,237,0.1);border-left-color:#7C3AED;color:#7C3AED}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD -->
+<div id="password-screen">
+  <div class="pw-card">
+    <div class="pw-logo">Autonomous-Design</div>
+    <div class="pw-sub">Accès réservé</div>
+    <input class="pw-input" id="pw-input" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkPassword()"/>
+    <div class="pw-error" id="pw-error"></div>
+    <button class="pw-btn" onclick="checkPassword()">Entrer</button>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="setup-card">
+    <div class="setup-logo">Autonomous-Design</div>
+    <div class="setup-sub">Prospection commerciale</div>
+    <span class="setup-label">Qui êtes-vous ?</span>
+    <div class="user-btns">
+      <button class="user-btn" onclick="selectUser('Guillaume')">👤 Guillaume</button>
+      <button class="user-btn" onclick="selectUser('Adrien')">👤 Adrien</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__logo">
+        <div class="sidebar__logo-name">Autonomous-Design</div>
+        <div class="sidebar__user" id="sidebarUser">—</div>
+      </div>
+      <nav class="sidebar__nav">
+        <button class="nav-item active" data-page="dashboard">
+          <span class="icon">📊</span> Dashboard
+        </button>
+        <button class="nav-item" data-page="calendar">
+          <span class="icon">📅</span> Calendrier
+          <span class="nav-badge" id="calendarBadge" style="display:none">0</span>
+        </button>
+        <button class="nav-item" data-page="prospects">
+          <span class="icon">🏢</span> Prospects
+        </button>
+        <button class="nav-item" data-page="callbacks">
+          <span class="icon">⏰</span> À rappeler
+          <span class="nav-badge" id="callbackBadge" style="display:none">0</span>
+        </button>
+        <button class="nav-item" data-page="history">
+          <span class="icon">📋</span> Historique
+        </button>
+        <button class="nav-item" data-page="kpi">
+          <span class="icon">📈</span> KPI & Stats
+        </button>
+        <div style="height:1px;background:var(--border);margin:0.5rem 0.4rem"></div>
+        <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);padding:0.3rem 0.8rem 0.2rem">Pipeline</div>
+        <button class="nav-item" data-page="post-rdv">
+          <span class="icon">🤝</span> Après RDV
+          <span class="nav-badge" id="postRdvBadge" style="display:none">0</span>
+        </button>
+        <button class="nav-item" data-page="sites">
+          <span class="icon">🚀</span> Sites livrés
+          <span class="nav-badge" id="sitesBadge" style="display:none">0</span>
+        </button>
+        <button class="nav-item" data-page="maintenance">
+          <span class="icon">🔧</span> Maintenance
+          <span class="nav-badge" id="maintenanceBadge" style="display:none">0</span>
+        </button>
+        <div style="height:1px;background:var(--border);margin:0.5rem 0.4rem"></div>
+        <button class="nav-item" data-page="archives">
+          <span class="icon">🗃️</span> Archives
+          <span class="nav-badge" id="archivesBadge" style="display:none">0</span>
+        </button>
+      </nav>
+      <div class="sidebar__footer">
+        <button id="darkModeBtn" onclick="toggleDark()">🌙 Mode sombre</button>
+        <button onclick="changeUser()" style="font-size:0.75rem;color:var(--text-muted);background:none;border:none;cursor:pointer;transition:color 0.2s">🔄 Changer d'utilisateur</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- TOPBAR MOBILE -->
+      <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:1.5rem" class="mobile-topbar" style="display:none">
+        <button class="mob-menu-btn" onclick="toggleSidebar()">☰</button>
+      </div>
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <div class="page active" id="page-dashboard">
+        <div class="topbar">
+          <div>
+            <h1>Bonjour, <span id="dashUser">—</span> 👋</h1>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.2rem" id="dashDate"></div>
+          </div>
+          <div class="topbar-actions">
+            <button class="btn btn-primary" onclick="openAddProspect()">+ Ajouter un prospect</button>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card accent">
+            <div class="stat-card__label">Total prospects</div>
+            <div class="stat-card__value" id="stat-total">—</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-card__label">Appelés aujourd'hui</div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:0.5rem">
+              <div class="stat-card__value" id="stat-today">—</div>
+              <div id="dashSparkline" style="margin-bottom:0.3rem;flex-shrink:0"></div>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar" id="stat-today-bar" style="width:0%"></div></div>
+            <div class="goal-row"><span id="stat-today-label">Objectif : <b id="goalDisplay">20</b></span><button onclick="changeGoal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.7rem">✏️</button></div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-card__label">À rappeler</div>
+            <div class="stat-card__value" id="stat-callbacks">—</div>
+          </div>
+          <div class="stat-card green clickable" onclick="openMeetingsModal()" title="Voir les prospects avec RDV décroché">
+            <div class="stat-card__label">RDV décrochés</div>
+            <div class="stat-card__value" id="stat-meetings">—</div>
+            <div class="stat-card__sub" style="color:#16A34A">↗ Voir la liste</div>
+          </div>
+        </div>
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-top:-0.5rem">
+          <div class="stat-card" style="border-color:rgba(52,211,153,0.3)">
+            <div class="stat-card__label">Pipeline €</div>
+            <div class="stat-card__value" id="stat-pipeline" style="color:#34D399;font-size:1.4rem">—</div>
+            <div class="stat-card__sub">valeur estimée totale</div>
+          </div>
+          <div class="stat-card" style="border-color:rgba(251,191,36,0.3)">
+            <div class="stat-card__label">Taux conversion</div>
+            <div class="stat-card__value" id="stat-rate" style="color:#FBBF24;font-size:1.4rem">—</div>
+            <div class="stat-card__sub">appels → RDV décroché</div>
+          </div>
+          <div class="stat-card" style="border-color:rgba(96,165,250,0.3)">
+            <div class="stat-card__label">Intéressés en attente</div>
+            <div class="stat-card__value" id="stat-interested" style="color:#60A5FA;font-size:1.4rem">—</div>
+            <div class="stat-card__sub" id="stat-stale-label"></div>
+          </div>
+        </div>
+        <div id="staleAlerts"></div>
+        <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:1.2rem;margin-bottom:1.2rem">
+          <div class="card">
+            <div class="card-title">⏰ Rappels du jour</div>
+            <div id="dashCallbacks"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📈 Activité récente</div>
+            <div id="dashActivity"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem">
+          <div class="card">
+            <div class="card-title">📊 Stats par secteur</div>
+            <div id="dashSectorStats"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span>🚀 Appel suivant</span>
+              <button class="btn btn-primary btn-sm" onclick="openNextProspect()">▶ Lancer</button>
+            </div>
+            <div id="dashNextProspect"></div>
+          </div>
+          <div class="card" id="callCounterCard"></div>
+        </div>
+      </div>
+
+      <!-- ═══ PROSPECTS ═══ -->
+      <div class="page" id="page-prospects">
+        <div class="topbar">
+          <h1>Prospects</h1>
+          <div class="topbar-actions">
+            <button class="btn btn-ghost" onclick="openNextProspect()">▶ Appel suivant</button>
+          <button class="btn btn-primary" onclick="openAddProspect()">+ Ajouter</button>
+          </div>
+        </div>
+        <div class="filters">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="filter-input" id="searchInput" placeholder="Rechercher…" oninput="filterProspects()"/>
+          </div>
+          <div style="position:relative" id="sectorDDWrap">
+            <button type="button" class="filter-select" onclick="toggleSectorDD()" id="sectorDDBtn" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:space-between;gap:0.5rem;min-width:140px">
+              <span id="sectorDDLabel">Tous secteurs</span>
+              <span style="font-size:0.65rem;opacity:0.5">▼</span>
+            </button>
+            <div id="sectorDDPanel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:230px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:50;padding:0.5rem">
+              <input class="filter-input" id="sectorDDSearch" placeholder="Rechercher un secteur…" oninput="filterSectorDD()" style="width:100%;margin-bottom:0.4rem"/>
+              <div id="sectorDDList" style="max-height:200px;overflow-y:auto"></div>
+            </div>
+          </div>
+          <select class="filter-select" id="filterCity" onchange="filterProspects()">
+            <option value="">Toutes villes</option>
+          </select>
+          <select class="filter-select" id="filterWebsite" onchange="filterProspects()">
+            <option value="">Site web</option>
+            <option value="yes">Avec site</option>
+            <option value="no">Sans site</option>
+          </select>
+          <select class="filter-select" id="filterStatus" onchange="filterProspects()">
+            <option value="">Tous statuts</option>
+            <option value="to_call">À appeler</option>
+            <option value="no_answer">Pas répondu</option>
+            <option value="callback">Rappeler</option>
+            <option value="not_interested">Pas intéressé</option>
+            <option value="interested">👍 Intéressé</option>
+            <option value="meeting_booked">RDV décroché</option>
+            <option value="post_rdv">Après RDV</option>
+            <option value="site_delivered">Site livré</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="resetFilters()">✕ Reset</button>
+          <button class="btn btn-ghost btn-sm" onclick="seedJodoigne()" title="Importer artisans Jodoigne">📥 Jodoigne</button>
+        </div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.8rem" id="prospectsCount"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Entreprise</th>
+                <th>Secteur</th>
+                <th>Ville</th>
+                <th>Téléphone</th>
+                <th>Site web</th>
+                <th>Statut</th>
+                <th>Dernier appel</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="prospectsTable">
+              <tr><td colspan="8" class="loading-row"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ CALLBACKS ═══ -->
+      <div class="page" id="page-callbacks">
+        <div class="topbar">
+          <h1>⏰ À rappeler</h1>
+        </div>
+        <div class="filters" style="margin-bottom:1rem">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="filter-input" id="cbSearchInput" placeholder="Rechercher…" oninput="loadCallbacks()"/>
+          </div>
+        </div>
+        <div id="callbacksList"></div>
+      </div>
+
+      <!-- ═══ CALENDRIER ═══ -->
+      <div class="page" id="page-calendar">
+        <div class="topbar">
+          <h1>📅 Calendrier</h1>
+          <div class="topbar-actions">
+            <button class="btn btn-primary btn-sm" onclick="openAddCalEvent()">+ Ajouter un événement</button>
+            <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Préc.</button>
+            <span id="calMonthLabel" style="font-size:0.88rem;font-weight:600;min-width:140px;text-align:center"></span>
+            <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Suiv. →</button>
+            <button class="btn btn-ghost btn-sm" onclick="calNav(0)">Aujourd'hui</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center">
+          <span style="font-size:0.75rem;color:var(--text-muted)">Légende :</span>
+          <span style="background:rgba(99,102,241,0.2);border-left:3px solid #818CF8;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.75rem;color:#818CF8">📹 Visio (prospect)</span>
+          <span style="background:rgba(16,185,129,0.15);border-left:3px solid #34D399;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.75rem;color:#34D399">🤝 Présentiel</span>
+          <span style="background:rgba(217,119,6,0.15);border-left:3px solid #FCD34D;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.75rem;color:#FCD34D">⏰ Rappel</span>
+          <span style="background:rgba(124,58,237,0.1);border-left:3px solid #7C3AED;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.75rem;color:#7C3AED">📌 Événement perso</span>
+          <span style="background:rgba(239,68,68,0.08);padding:0.2rem 0.6rem;border-radius:4px;font-size:0.75rem;color:#EF4444">🇧🇪 Jour férié</span>
+        </div>
+        <div id="calGrid"></div>
+      </div>
+
+      <!-- ═══ APRÈS RDV ═══ -->
+      <div class="page" id="page-post-rdv">
+        <div class="topbar">
+          <h1>🤝 Après RDV — En cours de création</h1>
+        </div>
+        <div id="postRdvList"></div>
+      </div>
+
+      <!-- ═══ SITES LIVRÉS ═══ -->
+      <div class="page" id="page-sites">
+        <div class="topbar">
+          <h1>🚀 Sites livrés</h1>
+        </div>
+        <div id="sitesList"></div>
+      </div>
+
+      <!-- ═══ MAINTENANCE ═══ -->
+      <div class="page" id="page-maintenance">
+        <div class="topbar">
+          <h1>🔧 Maintenance récurrente</h1>
+        </div>
+        <div id="maintenanceList"></div>
+      </div>
+
+      <!-- ═══ ARCHIVES ═══ -->
+      <div class="page" id="page-archives">
+        <div class="topbar">
+          <h1>🗃️ Archives</h1>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" id="archivesContent">
+          <div class="card">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span>🚫 Pas intéressés</span>
+              <span id="archivesNotInterestedCount" style="font-size:0.72rem;color:var(--text-muted)"></span>
+            </div>
+            <div class="filters" style="margin-bottom:0.8rem">
+              <div class="search-wrap" style="width:100%">
+                <span class="search-icon">🔍</span>
+                <input class="filter-input" id="archivesNISearch" placeholder="Rechercher…" oninput="loadArchives()"/>
+              </div>
+            </div>
+            <div id="archivesNotInterested"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span>🌐 Déjà un site web</span>
+              <span id="archivesHasWebCount" style="font-size:0.72rem;color:var(--text-muted)"></span>
+            </div>
+            <div class="filters" style="margin-bottom:0.8rem">
+              <div class="search-wrap" style="width:100%">
+                <span class="search-icon">🔍</span>
+                <input class="filter-input" id="archivesHWSearch" placeholder="Rechercher…" oninput="loadArchives()"/>
+              </div>
+            </div>
+            <div id="archivesHasWebsite"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ HISTORY ═══ -->
+      <div class="page" id="page-history">
+        <div class="topbar">
+          <h1>📋 Historique des appels</h1>
+        </div>
+        <div class="filters">
+          <div class="search-wrap" style="max-width:280px">
+            <span class="search-icon">🔍</span>
+            <input class="filter-input" id="histSearchInput" placeholder="Rechercher…" oninput="loadHistory()"/>
+          </div>
+          <select class="filter-select" id="histFilterUser" onchange="loadHistory()">
+            <option value="">Tous</option>
+            <option value="Guillaume">Guillaume</option>
+            <option value="Adrien">Adrien</option>
+          </select>
+          <select class="filter-select" id="histFilterStatus" onchange="loadHistory()">
+            <option value="">Tous statuts</option>
+            <option value="no_answer">Pas répondu</option>
+            <option value="not_interested">Pas intéressé</option>
+            <option value="callback">Rappeler</option>
+            <option value="meeting_booked">RDV décroché</option>
+            <option value="voicemail">Messagerie</option>
+            <option value="interested">Intéressé</option>
+          </select>
+        </div>
+        <div id="historyList"></div>
+      </div>
+
+      <!-- ═══ KPI & STATS ═══ -->
+      <div class="page" id="page-kpi">
+        <div class="topbar">
+          <h1>📈 KPI & Performance</h1>
+          <div class="topbar-actions">
+            <div class="kpi-period-btns" id="kpiPeriodBtns">
+              <button class="kpi-period-btn active" onclick="setKPIPeriod('today',this)">Aujourd'hui</button>
+              <button class="kpi-period-btn" onclick="setKPIPeriod('week',this)">Semaine</button>
+              <button class="kpi-period-btn" onclick="setKPIPeriod('month',this)">Mois</button>
+              <button class="kpi-period-btn" onclick="setKPIPeriod('year',this)">Année</button>
+            </div>
+          </div>
+        </div>
+        <div id="kpiContent"><div class="loading-row"><div class="spinner"></div></div></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ COMMAND PALETTE ══ -->
+<div id="cmdPalette" onclick="if(event.target===this)closeCmd()">
+  <div class="cmd-modal">
+    <div class="cmd-search-wrap">
+      <span class="cmd-search-icon">🔍</span>
+      <input id="cmdInput" placeholder="Rechercher un prospect, naviguer, agir…" autocomplete="off" spellcheck="false" oninput="onCmdInput(this.value)"/>
+      <span class="cmd-hint" style="flex-shrink:0">ESC</span>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-footer">
+      <span><kbd>↑↓</kbd> Naviguer</span>
+      <span><kbd>↵</kbd> Sélectionner</span>
+      <span><kbd>⌘K</kbd> Ouvrir / fermer</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : AJOUTER/ÉDITER PROSPECT ══ -->
+<div class="modal-overlay" id="modalProspect">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalProspectTitle">Nouveau prospect</h2>
+      <button class="modal-close" onclick="closeModal('modalProspect')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nom de l'entreprise *</label>
+          <input class="form-input" id="f_business_name" placeholder="Ex: Jardins Dupont" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact</label>
+          <input class="form-input" id="f_contact_name" placeholder="Prénom Nom"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Secteur</label>
+          <input class="form-input" id="f_sector" placeholder="Jardinage, Coiffure…" list="sectorList"/>
+          <datalist id="sectorList"></datalist>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ville</label>
+          <input class="form-input" id="f_city" placeholder="Ex: Jodoigne"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Téléphone</label>
+          <input class="form-input" id="f_phone" type="tel" placeholder="04XX XX XX XX"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="f_email" type="email" placeholder="contact@..."/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Années d'activité</label>
+          <input class="form-input" id="f_years" type="number" placeholder="Ex: 5" min="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valeur estimée (€)</label>
+          <input class="form-input" id="f_deal_value" type="number" placeholder="Ex: 1200" min="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Site web existant ?</label>
+          <div class="toggle-row">
+            <div class="toggle" id="toggleWebsite" onclick="toggleWebsiteSwitch()"></div>
+            <span id="toggleWebsiteLabel" style="font-size:0.82rem;color:var(--text-muted)">Non</span>
+          </div>
+        </div>
+        <div class="form-group full" id="websiteUrlGroup" style="display:none">
+          <label class="form-label">URL du site</label>
+          <input class="form-input" id="f_website_url" placeholder="https://..."/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-input" id="f_notes" placeholder="Infos supplémentaires…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalProspect')">Annuler</button>
+      <button class="btn btn-primary" id="saveProspectBtn" onclick="saveProspect()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : DÉTAIL PROSPECT + LOG APPEL ══ -->
+<div class="modal-overlay" id="modalDetail">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:0.5rem;min-width:0">
+        <h2 id="detailTitle" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</h2>
+        <button onclick="searchGoogle(document.getElementById('detailTitle').textContent + ' ' + (allProspects.find(x=>x.id===currentProspectId)?.city||''))" title="Chercher sur Google" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;flex-shrink:0;transition:color 0.15s" onmouseover="this.style.color='#4285F4'" onmouseout="this.style.color='var(--text-muted)'">🔍</button>
+        <button onclick="searchBCE(document.getElementById('detailTitle').textContent)" title="Chercher sur la BCE (gérant)" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.82rem;flex-shrink:0;transition:color 0.15s;font-weight:600;letter-spacing:-0.01em" onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='var(--text-muted)'">BCE</button>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <button class="btn btn-ghost btn-sm" id="editProspectBtn" onclick="editCurrentProspect()">✏️ Éditer</button>
+        <button class="modal-close" onclick="closeModal('modalDetail')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <!-- Infos -->
+      <div id="detailInfo"></div>
+
+      <!-- Log un appel -->
+      <div style="margin-top:1.4rem">
+        <div class="card-title">📞 Logger un appel</div>
+        <div class="call-actions" id="callActionBtns">
+          <button class="call-action-btn btn-blue" onclick="logCall('no_answer')">
+            <span class="icon">📵</span> Pas répondu
+          </button>
+          <button class="call-action-btn btn-amber" onclick="logCall('voicemail')">
+            <span class="icon">📬</span> Messagerie
+          </button>
+          <button class="call-action-btn btn-purple" onclick="openCallbackPicker()">
+            <span class="icon">⏰</span> Rappeler à…
+          </button>
+          <button class="call-action-btn btn-green" onclick="logCall('meeting_booked')">
+            <span class="icon">🎯</span> RDV décroché !
+          </button>
+          <button class="call-action-btn btn-red" onclick="logCall('not_interested')">
+            <span class="icon">🚫</span> Pas intéressé
+          </button>
+          <button class="call-action-btn btn-blue" onclick="logCall('interested')">
+            <span class="icon">👍</span> Intéressé
+          </button>
+          <button class="call-action-btn" style="background:rgba(20,184,166,0.1);color:#0F766E;border:1px solid rgba(20,184,166,0.25);grid-column:1/-1" onclick="logCall('has_website')">
+            <span class="icon">🌐</span> Déjà un site web
+          </button>
+        </div>
+        <div class="form-group" style="margin-top:0.8rem">
+          <label class="form-label">Commentaire</label>
+          <textarea class="form-input" id="callComment" rows="2" placeholder="Notes sur l'appel…"></textarea>
+        </div>
+      </div>
+
+      <!-- Message rapide à copier (pendant le call) -->
+      <div id="quickMsgSection" style="display:none;margin-bottom:1.2rem;background:var(--surface2);border-radius:var(--radius);padding:1rem 1.2rem;border-left:3px solid #7C3AED">
+        <div class="card-title" style="margin-bottom:0.8rem;color:#A78BFA">💬 Message rapide — à copier pendant le call</div>
+        <div class="form-grid" style="gap:0.7rem;margin-bottom:0.8rem">
+          <div class="form-group">
+            <label class="form-label">Prénom</label>
+            <input class="form-input" id="qmFirstName" placeholder="Jean" oninput="refreshQuickMsg()"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date & heure du visio</label>
+            <input class="form-input" id="qmDate" type="datetime-local" oninput="refreshQuickMsg()"/>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Lien Google Meet</label>
+            <div style="display:flex;gap:0.5rem">
+              <input class="form-input" id="qmMeetLink" placeholder="https://meet.google.com/..." oninput="refreshQuickMsg()"/>
+              <button type="button" onclick="window.open('https://meet.new','_blank')" style="flex-shrink:0;padding:0 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-size:0.8rem;white-space:nowrap">+ Créer</button>
+            </div>
+          </div>
+        </div>
+        <div id="quickMsgPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;font-size:0.82rem;color:var(--text-soft);line-height:1.6;white-space:pre-wrap;margin-bottom:0.7rem"></div>
+        <button class="btn btn-primary" style="width:100%;background:#7C3AED;border:none" onclick="copyQuickMsg()">
+          📋 Copier le message
+        </button>
+      </div>
+
+      <!-- Invitation email (après le call, pour confirmer) -->
+      <div id="emailInviteSection" style="display:none;margin-bottom:1.2rem;background:var(--surface2);border-radius:var(--radius);padding:1rem 1.2rem;border-left:3px solid #10B981">
+        <div class="card-title" style="margin-bottom:0.8rem;color:#059669">✉️ Email de confirmation — à copier/coller</div>
+        <div style="display:flex;gap:0.7rem;margin-bottom:0.8rem;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:140px">
+            <label class="form-label">Prénom du contact</label>
+            <input class="form-input" id="inviteContactName" placeholder="Ex: Jean" oninput="refreshInviteEmail()"/>
+          </div>
+          <div class="form-group" style="flex:1;min-width:140px">
+            <label class="form-label">Signataire</label>
+            <div style="display:flex;gap:0.4rem">
+              <button type="button" id="signerGuillaume" onclick="selectSigner('Guillaume')" style="flex:1;padding:0.55rem;border-radius:8px;border:2px solid var(--accent);background:rgba(79,70,229,0.1);color:var(--accent);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s">Guillaume</button>
+              <button type="button" id="signerAdrien" onclick="selectSigner('Adrien')" style="flex:1;padding:0.55rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.15s">Adrien</button>
+            </div>
+          </div>
+          <div class="form-group" style="flex:2;min-width:200px">
+            <label class="form-label">Lien Google Meet</label>
+            <div style="display:flex;gap:0.5rem">
+              <input class="form-input" id="inviteMeetLink" placeholder="https://meet.google.com/..." oninput="refreshInviteEmail()"/>
+              <button type="button" onclick="window.open('https://meet.new','_blank')" style="flex-shrink:0;padding:0 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-size:0.8rem;white-space:nowrap">+ Créer</button>
+            </div>
+          </div>
+        </div>
+        <div id="inviteEmailPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;font-size:0.82rem;color:var(--text-soft);line-height:1.6;white-space:pre-wrap;margin-bottom:0.7rem"></div>
+        <button class="btn btn-primary" style="width:100%;background:#059669;border:none" onclick="copyInviteEmail()">
+          📋 Copier l'email
+        </button>
+      </div>
+
+      <!-- Script d'appel -->
+      <div class="script-panel" id="scriptPanel" style="display:none">
+        <button class="script-toggle" onclick="toggleScript()">
+          💬 Script d'appel <span id="scriptArrow">▼</span>
+        </button>
+        <div class="script-text" id="scriptText"></div>
+      </div>
+
+      <!-- RDV Info -->
+      <div id="rdvSection" style="display:none;margin-bottom:1.2rem;background:var(--surface2);border-radius:var(--radius);padding:1rem 1.2rem;border-left:3px solid var(--accent-h)">
+        <div class="card-title" style="margin-bottom:0.8rem">📅 Informations RDV</div>
+        <div class="form-grid" style="gap:0.8rem">
+          <div class="form-group">
+            <label class="form-label">Date & heure du RDV</label>
+            <input class="form-input" id="rdvDate" type="datetime-local" onchange="saveRdvInfo()"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type de RDV</label>
+            <select class="form-select" id="rdvType" onchange="saveRdvInfo()">
+              <option value="presentiel">🤝 Présentiel</option>
+              <option value="visio">📹 Visio (Teams / Meet)</option>
+            </select>
+          </div>
+          <div class="form-group full" id="rdvLinkGroup" style="display:none">
+            <label class="form-label">Lien Teams / Meet</label>
+            <input class="form-input" id="rdvLink" placeholder="https://teams.microsoft.com/..." onblur="saveRdvInfo()"/>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">🚀 URL démo Netlify (pour le RDV)</label>
+            <input class="form-input" id="rdvDemoUrl" placeholder="https://mon-client.netlify.app" onblur="saveRdvInfo()"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compte rendu visio -->
+      <div id="visioNotesSection" style="display:none;margin-bottom:1.2rem;background:var(--surface2);border-radius:var(--radius);padding:1rem 1.2rem;border-left:3px solid var(--accent)">
+        <div class="card-title" style="margin-bottom:0.8rem">📝 Compte rendu du visio</div>
+        <textarea id="visioNotesInput" class="form-input" rows="6" placeholder="Notes pendant le visio...&#10;&#10;— Besoins exprimés :&#10;— Budget évoqué :&#10;— Décision :&#10;— Prochaine étape :"></textarea>
+        <button class="btn btn-primary" style="margin-top:0.6rem;width:100%" onclick="saveVisioNotes()">💾 Sauvegarder le compte rendu</button>
+      </div>
+
+      <!-- Reset statut -->
+      <div style="margin-top:1.2rem;display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap">
+        <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Statut :</span>
+        <select id="statusOverrideSelect" class="form-select" style="width:auto;font-size:0.82rem;padding:0.4rem 0.7rem" onchange="overrideStatus(this.value)">
+          <option value="">— Changer —</option>
+          <option value="to_call">📋 À appeler</option>
+          <option value="no_answer">📵 Pas répondu</option>
+          <option value="voicemail">📬 Messagerie</option>
+          <option value="callback">⏰ Rappeler</option>
+          <option value="interested">👍 Intéressé</option>
+          <option value="meeting_booked">🎯 RDV décroché</option>
+          <option value="not_interested">🚫 Pas intéressé</option>
+          <option value="has_website">🌐 Déjà un site web</option>
+          <option value="post_rdv">🤝 Après RDV</option>
+          <option value="site_delivered">🚀 Site livré</option>
+          <option value="maintenance">🔧 Maintenance</option>
+        </select>
+      </div>
+
+      <!-- Pipeline transitions -->
+      <div id="pipelineSection" style="margin-top:1.4rem;display:none">
+        <div class="card-title">🔄 Faire avancer dans le pipeline</div>
+        <div class="pipeline-stage-btns" id="pipelineBtns"></div>
+        <div id="deliveredUrlGroup" style="display:none;margin-top:0.5rem">
+          <label class="form-label">URL du site livré</label>
+          <input class="form-input" id="deliveredUrlInput" placeholder="https://..."/>
+        </div>
+      </div>
+
+      <!-- Historique appels -->
+      <div style="margin-top:1.4rem">
+        <div class="card-title">📋 Historique</div>
+        <div id="detailCallHistory"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : PROGRAMMER UN RAPPEL ══ -->
+<div class="modal-overlay" id="modalCallback">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2>⏰ Programmer un rappel</h2>
+      <button class="modal-close" onclick="closeModal('modalCallback')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:0.8rem;font-size:0.8rem;color:var(--text-muted)">Heures rapides</div>
+      <div class="time-presets" id="timePresets"></div>
+      <div class="form-group" style="margin-top:1rem">
+        <label class="form-label">Ou choisir date & heure</label>
+        <input class="form-input" id="callbackDatetime" type="datetime-local"/>
+      </div>
+      <div class="form-group" style="margin-top:0.8rem">
+        <label class="form-label">Commentaire</label>
+        <textarea class="form-input" id="callbackComment" rows="2" placeholder="Ex: Rappeler après 17h, demander M. Martin…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalCallback')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmCallback()">Programmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : ÉDITION CALENDRIER ══ -->
+<div class="modal-overlay" id="modalCalEdit">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div>
+        <h2 id="calEditTitle" style="font-size:0.95rem">—</h2>
+        <div id="calEditType" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.15rem"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalCalEdit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:1.2rem">
+        <label class="form-label">Date & heure</label>
+        <input class="form-input" id="calEditDatetime" type="datetime-local"/>
+      </div>
+      <div id="calEditLinkGroup" style="display:none;margin-bottom:1.2rem">
+        <div class="form-group">
+          <label class="form-label">Lien Meet / Teams</label>
+          <input class="form-input" id="calEditLink" placeholder="https://meet.google.com/..."/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-ghost btn-sm" onclick="openDetailFromCal()">🔍 Ouvrir le prospect</button>
+      <div style="display:flex;gap:0.6rem">
+        <button class="btn btn-ghost" onclick="closeModal('modalCalEdit')">Annuler</button>
+        <button class="btn btn-primary" onclick="saveCalEdit()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : RDV DÉCROCHÉS ══ -->
+<div class="modal-overlay" id="modalMeetings">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h2>🎯 RDV décrochés</h2>
+      <button class="modal-close" onclick="closeModal('modalMeetings')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:0.6rem">
+      <div id="meetingsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : AJOUTER / MODIFIER ÉVÉNEMENT CALENDRIER ══ -->
+<div class="modal-overlay" id="modalAddCalEvent">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h2 id="modalAddCalEventTitle">Ajouter un événement</h2>
+      <button class="modal-close" onclick="closeModal('modalAddCalEvent')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="calEvId"/>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">Titre *</label>
+        <input class="form-input" id="calEvTitle" placeholder="Ex: RDV Guillaume – Dupont Plomberie"/>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">Date & heure *</label>
+        <input class="form-input" id="calEvDate" type="datetime-local"/>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="calEvType" onchange="toggleCalEvLink()">
+          <option value="visio">📹 Visio (Teams / Meet)</option>
+          <option value="presentiel">🤝 Présentiel</option>
+          <option value="callback">⏰ Rappel</option>
+        </select>
+      </div>
+      <div id="calEvLinkGroup" class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">Lien Meet / Teams</label>
+        <div style="display:flex;gap:0.5rem">
+          <input class="form-input" id="calEvLink" placeholder="https://meet.google.com/..."/>
+          <button type="button" onclick="window.open('https://meet.new','_blank')" style="flex-shrink:0;padding:0 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-size:0.8rem;white-space:nowrap">+ Créer</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button id="calEvDeleteBtn" class="btn btn-red btn-sm" onclick="deleteCalEvent(document.getElementById('calEvId').value)" style="display:none">🗑 Supprimer</button>
+      <div style="display:flex;gap:0.6rem">
+        <button class="btn btn-ghost" onclick="closeModal('modalAddCalEvent')">Annuler</button>
+        <button class="btn btn-primary" onclick="saveCalEvent()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONFIG SUPABASE — à remplir après setup
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'https://avvbemasgkwqzyoscvte.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2dmJlbWFzZ2t3cXp5b3NjdnRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5Njg0MTYsImV4cCI6MjA5ODU0NDQxNn0.yBnSZKrQdGMuAQvKUhJ_nsxqDIf_7OC3WFYEhnK5A3Y';
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+let sb = null;
+let _currentSector = '';
+let _inviteSigner = 'Guillaume';
+let currentUser = null;
+let allProspects = [];
+let currentProspectId = null;
+let editingProspectId = null;
+let websiteOn = false;
+let calendarEvents = JSON.parse(localStorage.getItem('calEvents') || '[]');
+
+function initSupabase() {
+  if (SUPABASE_URL === 'VOTRE_URL_SUPABASE') return null;
+  return supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+// ══════════════════════════════════════════
+//  SCRIPTS D'APPEL
+// ══════════════════════════════════════════
+const CALL_SCRIPTS = {
+  default: `Bonjour, je suis [Prénom] de Couzzz, on développe des sites web pour les professionnels de la région.
+
+Je vous appelle parce que j'ai vu que vous n'avez pas encore de site web — est-ce que vous avez une minute ?
+
+[Si oui] : Aujourd'hui beaucoup de vos futurs clients vous cherchent sur Google avant d'appeler. Sans site, vous n'existez pas pour eux. On crée des sites simples, professionnels et rapides à mettre en place.
+
+Est-ce que ça vous intéresserait qu'on s'appelle 20 minutes pour que je vous montre ce qu'on peut faire pour vous ?`,
+
+  'Plomberie': `Bonjour, je suis [Prénom] de Couzzz.
+
+Je vous appelle parce que beaucoup de personnes cherchent un plombier sur Google dans votre région — et sans site web, ils tombent sur vos concurrents plutôt que sur vous.
+
+On crée des sites web pour les artisans locaux, avec vos services, votre zone d'intervention et un formulaire de contact. Simple et efficace.
+
+Vous avez 20 minutes cette semaine pour qu'on vous montre un exemple ?`,
+
+  'Électricité': `Bonjour, je suis [Prénom] de Couzzz.
+
+Quand quelqu'un cherche un électricien à Jodoigne sur Google, il y a de grandes chances que ce ne soit pas vous qui apparaissiez — parce que vous n'avez pas encore de site.
+
+On s'occupe de tout : création, mise en ligne, référencement local. Vous continuez vos chantiers, on s'occupe du reste.
+
+On pourrait prévoir un appel rapide cette semaine ?`,
+
+  'Restaurant': `Bonjour, je suis [Prénom] de Couzzz.
+
+On aide les restaurants de la région à attirer plus de clients avec un site web professionnel — menu en ligne, horaires, réservations, Google Maps bien configuré.
+
+Est-ce que vous avez actuellement un site ou une façon pour vos clients de trouver votre menu en ligne ?
+
+[Si non] : C'est exactement ce qu'on fait. On pourrait vous montrer un exemple cette semaine ?`,
+
+  'Coiffure': `Bonjour, je suis [Prénom] de Couzzz.
+
+Beaucoup de salons de coiffure de la région manquent de visibilité en ligne — les clients cherchent sur Google et ne trouvent que Facebook s'il est bien tenu.
+
+On crée des sites avec galerie de photos, prise de RDV en ligne et profil Google optimisé. Vos clients vous trouvent facilement.
+
+Ça vous parlerait qu'on en discute 20 minutes ?`,
+
+  'Garage / Auto': `Bonjour, je suis [Prénom] de Couzzz.
+
+Quand quelqu'un crève un pneu ou a besoin d'un entretien rapide, il cherche un garage sur Google. Sans site, c'est votre concurrent qui récupère le client.
+
+On crée des sites simples pour les garages — services, marques, contact direct, Google Maps. Ça prend 3 semaines et c'est en ligne.
+
+Est-ce qu'on pourrait en discuter rapidement cette semaine ?`,
+};
+
+function getCallScript(sector) {
+  if (!sector) return CALL_SCRIPTS.default;
+  const s = sector.toLowerCase();
+  if (s.includes('plomb') || s.includes('chauffage') || s.includes('sanitaire')) return CALL_SCRIPTS['Plomberie'];
+  if (s.includes('élec') || s.includes('elec')) return CALL_SCRIPTS['Électricité'];
+  if (s.includes('restaurant') || s.includes('brasserie') || s.includes('friterie') || s.includes('snack') || s.includes('sushi') || s.includes('kebab') || s.includes('pizz')) return CALL_SCRIPTS['Restaurant'];
+  if (s.includes('coiffure') || s.includes('barber')) return CALL_SCRIPTS['Coiffure'];
+  if (s.includes('garage') || s.includes('auto') || s.includes('pneu')) return CALL_SCRIPTS['Garage / Auto'];
+  return CALL_SCRIPTS.default;
+}
+
+function renderScriptPanel(p) {
+  const panel = document.getElementById('scriptPanel');
+  const text = document.getElementById('scriptText');
+  const callStatuses = ['to_call','no_answer','voicemail','callback','interested'];
+  if (!callStatuses.includes(p.status)) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  text.textContent = getCallScript(p.sector);
+  text.classList.remove('open');
+  document.getElementById('scriptArrow').textContent = '▼';
+}
+
+function toggleScript() {
+  const text = document.getElementById('scriptText');
+  const arrow = document.getElementById('scriptArrow');
+  text.classList.toggle('open');
+  arrow.textContent = text.classList.contains('open') ? '▲' : '▼';
+}
+
+// ══════════════════════════════════════════
+//  APPEL SUIVANT
+// ══════════════════════════════════════════
+function openNextProspect() {
+  const next = allProspects.find(p => p.status === 'to_call' || p.status === 'no_answer' || p.status === 'callback');
+  if (!next) { toast('✅ Plus de prospects à appeler pour l\'instant !', 'success'); return; }
+  openDetail(next.id);
+}
+
+// ══════════════════════════════════════════
+//  OBJECTIF JOURNALIER
+// ══════════════════════════════════════════
+let dailyGoal = parseInt(localStorage.getItem('dailyGoal') || '20');
+
+function changeGoal() {
+  const val = prompt('Objectif d\'appels par jour :', dailyGoal);
+  if (val && !isNaN(parseInt(val))) {
+    dailyGoal = parseInt(val);
+    localStorage.setItem('dailyGoal', dailyGoal);
+    loadDashboard();
+  }
+}
+
+// ══════════════════════════════════════════
+//  CALENDRIER
+// ══════════════════════════════════════════
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function calNav(dir) {
+  if (dir === 0) { calYear = new Date().getFullYear(); calMonth = new Date().getMonth(); }
+  else { calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; } }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('calMonthLabel').textContent = monthNames[calMonth] + ' ' + calYear;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth + 1, 0);
+  let startDow = firstDay.getDay(); // 0=Sun
+  startDow = startDow === 0 ? 6 : startDow - 1; // convert to Mon=0
+  const today = new Date(); today.setHours(0,0,0,0);
+  const holidays = getBelgianHolidays(calYear);
+
+  // Collect events
+  const events = [];
+  allProspects.forEach(p => {
+    if (p.rdv_date) {
+      const d = new Date(p.rdv_date);
+      events.push({ date: d, type: p.rdv_type || 'presentiel', label: p.business_name, id: p.id, isRdv: true });
+    }
+    if (p.callback_time && p.status === 'callback') {
+      const d = new Date(p.callback_time);
+      events.push({ date: d, type: 'callback', label: p.business_name, id: p.id, isRdv: false });
+    }
+  });
+
+  // Update badge
+  const thisMonthRdv = events.filter(e => e.isRdv && e.date.getMonth() === calMonth && e.date.getFullYear() === calYear).length;
+  const b = document.getElementById('calendarBadge');
+  if(b){ b.textContent = thisMonthRdv; b.style.display = thisMonthRdv ? 'inline-block' : 'none'; }
+
+  let html = '<div class="cal-grid">';
+  days.forEach(d => html += `<div class="cal-header">${d}</div>`);
+
+  // Padding before
+  for (let i = 0; i < startDow; i++) {
+    const d = new Date(calYear, calMonth, 1 - startDow + i);
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${d.getDate()}</div></div>`;
+  }
+
+  // Days of month
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    const d = new Date(calYear, calMonth, day);
+    const isToday = d.getTime() === today.getTime();
+    const dayEvents = events.filter(e => e.date.getFullYear() === d.getFullYear() && e.date.getMonth() === d.getMonth() && e.date.getDate() === d.getDate());
+    const dateKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const holiday = holidays[dateKey];
+    const standaloneEvs = calendarEvents.filter(e => { const ed = new Date(e.date); return ed.getFullYear() === d.getFullYear() && ed.getMonth() === d.getMonth() && ed.getDate() === d.getDate(); });
+    html += `<div class="cal-day${isToday ? ' today' : ''}${holiday ? ' holiday' : ''}" onclick="openAddCalEventOnDay('${dateKey}')">`;
+    if (holiday) html += `<div class="cal-holiday-name">🇧🇪 ${holiday}</div>`;
+    html += `<div class="cal-day-num">${day}</div>`;
+    dayEvents.forEach(ev => {
+      const time = ev.date.toLocaleTimeString('fr', {hour:'2-digit',minute:'2-digit'});
+      const icon = ev.type === 'visio' ? '📹' : ev.type === 'callback' ? '⏰' : '🤝';
+      html += `<div class="cal-event ${ev.type}" onclick="event.stopPropagation();openCalEdit('${ev.id}','${ev.isRdv ? 'rdv' : 'callback'}')" title="${ev.label}">${icon} ${time} ${ev.label}</div>`;
+    });
+    standaloneEvs.forEach(ev => {
+      const time = new Date(ev.date).toLocaleTimeString('fr', {hour:'2-digit',minute:'2-digit'});
+      const icon = ev.type === 'visio' ? '📹' : ev.type === 'callback' ? '⏰' : '🤝';
+      html += `<div class="cal-event standalone" onclick="event.stopPropagation();openEditCalEvent('${ev.id}')" title="${ev.title}">${icon} ${time} ${ev.title}</div>`;
+    });
+    html += '</div>';
+  }
+
+  // Padding after
+  const totalCells = startDow + lastDay.getDate();
+  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  }
+  html += '</div>';
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+// ══ CALENDAR QUICK EDIT ══
+let _calEditType = 'rdv';
+
+function openCalEdit(id, type) {
+  const p = allProspects.find(x => x.id === id);
+  if (!p) return;
+  currentProspectId = id;
+  _calEditType = type;
+
+  document.getElementById('calEditTitle').textContent = p.business_name;
+
+  if (type === 'rdv') {
+    const rdvType = p.rdv_type || 'presentiel';
+    const icon = rdvType === 'visio' ? '📹 Visio' : '🤝 Présentiel';
+    document.getElementById('calEditType').textContent = icon;
+    document.getElementById('calEditDatetime').value = p.rdv_date ? new Date(p.rdv_date).toISOString().slice(0,16) : '';
+    const linkGroup = document.getElementById('calEditLinkGroup');
+    linkGroup.style.display = rdvType === 'visio' ? 'block' : 'none';
+    document.getElementById('calEditLink').value = p.rdv_link || '';
+  } else {
+    document.getElementById('calEditType').textContent = '⏰ Rappel';
+    document.getElementById('calEditDatetime').value = p.callback_time ? new Date(p.callback_time).toISOString().slice(0,16) : '';
+    document.getElementById('calEditLinkGroup').style.display = 'none';
+  }
+  openModal('modalCalEdit');
+}
+
+async function saveCalEdit() {
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (!p) return;
+  const dt = document.getElementById('calEditDatetime').value;
+  if (!dt) { toast('Choisissez une date', 'error'); return; }
+  const iso = new Date(dt).toISOString();
+
+  let payload = { updated_at: new Date().toISOString() };
+  if (_calEditType === 'rdv') {
+    payload.rdv_date = iso;
+    const link = document.getElementById('calEditLink').value.trim();
+    if (link) { payload.rdv_link = link; p.rdv_link = link; }
+    p.rdv_date = iso;
+  } else {
+    payload.callback_time = iso;
+    p.callback_time = iso;
+  }
+
+  if (sb) await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  else {
+    Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  Object.assign(p, payload);
+  closeModal('modalCalEdit');
+  toast('📅 Date mise à jour ✓', 'success');
+  renderCalendar();
+}
+
+function openDetailFromCal() {
+  closeModal('modalCalEdit');
+  openDetail(currentProspectId);
+}
+
+// ══════════════════════════════════════════
+//  JOURS FÉRIÉS BELGES
+// ══════════════════════════════════════════
+function getEaster(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+function getBelgianHolidays(year) {
+  const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+  const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const easter = getEaster(year);
+  return {
+    [`${year}-01-01`]: 'Nouvel An',
+    [fmt(addDays(easter, 1))]: 'Lundi de Pâques',
+    [`${year}-05-01`]: 'Fête du Travail',
+    [fmt(addDays(easter, 39))]: 'Ascension',
+    [fmt(addDays(easter, 50))]: 'Lundi de Pentecôte',
+    [`${year}-07-21`]: 'Fête Nationale',
+    [`${year}-08-15`]: 'Assomption',
+    [`${year}-11-01`]: 'Toussaint',
+    [`${year}-11-11`]: 'Armistice',
+    [`${year}-12-25`]: 'Noël',
+  };
+}
+
+// ══════════════════════════════════════════
+//  ÉVÉNEMENTS CALENDRIER STANDALONE
+// ══════════════════════════════════════════
+function saveCalEvents() {
+  localStorage.setItem('calEvents', JSON.stringify(calendarEvents));
+}
+
+function openAddCalEvent(datetimeStr) {
+  document.getElementById('calEvId').value = '';
+  document.getElementById('calEvTitle').value = '';
+  document.getElementById('calEvDate').value = datetimeStr || new Date().toISOString().slice(0,16);
+  document.getElementById('calEvType').value = 'visio';
+  document.getElementById('calEvLink').value = '';
+  document.getElementById('calEvLinkGroup').style.display = 'block';
+  document.getElementById('calEvDeleteBtn').style.display = 'none';
+  document.getElementById('modalAddCalEventTitle').textContent = 'Ajouter un événement';
+  openModal('modalAddCalEvent');
+}
+
+function openAddCalEventOnDay(dateStr) {
+  openAddCalEvent(dateStr + 'T09:00');
+}
+
+function openEditCalEvent(id) {
+  const ev = calendarEvents.find(e => e.id === id);
+  if (!ev) return;
+  document.getElementById('calEvId').value = id;
+  document.getElementById('calEvTitle').value = ev.title || '';
+  document.getElementById('calEvDate').value = new Date(ev.date).toISOString().slice(0,16);
+  document.getElementById('calEvType').value = ev.type || 'visio';
+  document.getElementById('calEvLink').value = ev.link || '';
+  toggleCalEvLink();
+  document.getElementById('calEvDeleteBtn').style.display = 'inline-flex';
+  document.getElementById('modalAddCalEventTitle').textContent = "Modifier l'événement";
+  openModal('modalAddCalEvent');
+}
+
+function toggleCalEvLink() {
+  document.getElementById('calEvLinkGroup').style.display =
+    document.getElementById('calEvType').value === 'visio' ? 'block' : 'none';
+}
+
+function saveCalEvent() {
+  const title = document.getElementById('calEvTitle').value.trim();
+  const date = document.getElementById('calEvDate').value;
+  const type = document.getElementById('calEvType').value;
+  const link = document.getElementById('calEvLink').value.trim();
+  const id = document.getElementById('calEvId').value;
+  if (!title) { toast('Le titre est requis', 'error'); return; }
+  if (!date) { toast('La date est requise', 'error'); return; }
+  const ev = { title, date: new Date(date).toISOString(), type, link: link || null, createdBy: currentUser };
+  if (id) {
+    const idx = calendarEvents.findIndex(e => e.id === id);
+    if (idx !== -1) calendarEvents[idx] = { ...calendarEvents[idx], ...ev };
+  } else {
+    calendarEvents.push({ id: crypto.randomUUID(), ...ev });
+  }
+  saveCalEvents();
+  closeModal('modalAddCalEvent');
+  toast('📅 Événement enregistré ✓', 'success');
+  renderCalendar();
+}
+
+function deleteCalEvent(id) {
+  if (!id || !confirm('Supprimer cet événement ?')) return;
+  calendarEvents = calendarEvents.filter(e => e.id !== id);
+  saveCalEvents();
+  closeModal('modalAddCalEvent');
+  toast('Événement supprimé', '');
+  renderCalendar();
+}
+
+// ══════════════════════════════════════════
+//  MODAL RDV DÉCROCHÉS
+// ══════════════════════════════════════════
+function openMeetingsModal() {
+  const meetings = allProspects.filter(p => p.status === 'meeting_booked');
+  const el = document.getElementById('meetingsList');
+  if (!meetings.length) {
+    el.innerHTML = '<div class="empty"><div class="icon">📅</div><p>Aucun RDV décroché pour le moment</p></div>';
+  } else {
+    const sorted = [...meetings].sort((a, b) => {
+      if (!a.rdv_date && !b.rdv_date) return 0;
+      if (!a.rdv_date) return 1;
+      if (!b.rdv_date) return -1;
+      return new Date(a.rdv_date) - new Date(b.rdv_date);
+    });
+    el.innerHTML = sorted.map(p => {
+      const rdvDate = p.rdv_date
+        ? new Date(p.rdv_date).toLocaleDateString('fr-BE', {weekday:'short',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})
+        : null;
+      const icon = p.rdv_type === 'visio' ? '📹 Visio' : '🤝 Présentiel';
+      return `<div class="callback-item" style="cursor:pointer;margin-bottom:0.5rem" onclick="closeModal('modalMeetings');openDetail('${p.id}')">
+        <div class="callback-info">
+          <div class="callback-name">${p.business_name}</div>
+          <div class="callback-detail">${[p.city, p.sector, p.phone].filter(Boolean).join(' · ')}</div>
+          ${rdvDate
+            ? `<div style="font-size:0.75rem;color:var(--accent-h);margin-top:0.25rem">${icon} — ${rdvDate}</div>`
+            : `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem">Date non définie</div>`}
+        </div>
+        <span class="badge badge-meeting_booked">🎯 RDV</span>
+      </div>`;
+    }).join('');
+  }
+  openModal('modalMeetings');
+}
+
+// ══════════════════════════════════════════
+//  COMPTEUR D'APPELS JOURNALIER
+// ══════════════════════════════════════════
+function getCallCountKey(user) {
+  return `cc_${new Date().toISOString().split('T')[0]}_${user}`;
+}
+
+function getCallCount(user) {
+  return parseInt(localStorage.getItem(getCallCountKey(user)) || '0');
+}
+
+function incrementCallCount(user) {
+  const key = getCallCountKey(user);
+  localStorage.setItem(key, (parseInt(localStorage.getItem(key) || '0')) + 1);
+  renderCallCounter();
+}
+
+function editCallCount(user) {
+  const val = prompt(`Nombre d'appels pour ${user} aujourd'hui :`, getCallCount(user));
+  if (val === null) return;
+  const n = parseInt(val);
+  if (!isNaN(n) && n >= 0) { localStorage.setItem(getCallCountKey(user), n); renderCallCounter(); }
+}
+
+function renderCallCounter() {
+  const el = document.getElementById('callCounterCard');
+  if (!el) return;
+  const g = getCallCount('Guillaume'), a = getCallCount('Adrien');
+  const total = g + a;
+  const statEl = document.getElementById('stat-today');
+  if (statEl) statEl.textContent = total;
+  const bar = document.getElementById('stat-today-bar');
+  if (bar) bar.style.width = Math.min(100, Math.round(total / dailyGoal * 100)) + '%';
+  renderSparkline('dashSparkline', (() => {
+    const vals = []; const today = new Date().toISOString().split('T')[0];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const dk = d.toISOString().split('T')[0];
+      vals.push(parseInt(localStorage.getItem('cc_'+dk+'_Guillaume')||'0') + parseInt(localStorage.getItem('cc_'+dk+'_Adrien')||'0'));
+    }
+    return vals;
+  })(), '#60A5FA');
+  el.innerHTML = `
+    <div class="card-title" style="margin-bottom:0.5rem">📱 Appels passés aujourd'hui</div>
+    <div style="text-align:center;font-size:2.4rem;font-weight:800;color:var(--accent-h);letter-spacing:-0.04em;line-height:1;margin-bottom:0.8rem">${g+a}</div>
+    <div>
+      <div class="counter-person">
+        <div class="counter-name">👤 Guillaume</div>
+        <div class="counter-value" onclick="editCallCount('Guillaume')" title="Cliquer pour modifier">${g}</div>
+        <button class="counter-btn" onclick="incrementCallCount('Guillaume')" title="Ajouter 1 appel">+</button>
+      </div>
+      <div class="counter-person">
+        <div class="counter-name">👤 Adrien</div>
+        <div class="counter-value" onclick="editCallCount('Adrien')" title="Cliquer pour modifier">${a}</div>
+        <button class="counter-btn" onclick="incrementCallCount('Adrien')" title="Ajouter 1 appel">+</button>
+      </div>
+    </div>`;
+}
+
+// ══ RDV INFO IN DETAIL ══
+// ── MESSAGE RAPIDE (pendant le call) ──
+function renderQuickMsgSection(p) {
+  const section = document.getElementById('quickMsgSection');
+  const showFor = ['interested', 'callback', 'to_call', 'no_answer', 'voicemail'];
+  if (!showFor.includes(p.status)) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('qmFirstName').value = p.contact_name ? p.contact_name.split(' ')[0] : '';
+  document.getElementById('qmMeetLink').value = p.rdv_link || '';
+  document.getElementById('qmDate').value = p.rdv_date ? new Date(p.rdv_date).toISOString().slice(0,16) : '';
+  refreshQuickMsg();
+}
+
+function refreshQuickMsg() {
+  const p = allProspects.find(x => x.id === currentProspectId);
+  const firstName = document.getElementById('qmFirstName').value.trim() || 'Madame/Monsieur';
+  const meetLink = document.getElementById('qmMeetLink').value.trim() || '[lien Meet à coller]';
+  const dateVal = document.getElementById('qmDate').value;
+  const dateStr = dateVal
+    ? new Date(dateVal).toLocaleDateString('fr-BE', { weekday:'long', day:'numeric', month:'long' }) + ' à ' + new Date(dateVal).toLocaleTimeString('fr-BE', { hour:'2-digit', minute:'2-digit' })
+    : '[date à confirmer]';
+  const biz = p ? p.business_name : '';
+  document.getElementById('quickMsgPreview').textContent =
+`Bonjour ${firstName} 👋
+
+Suite à notre appel, voici le lien pour notre visio${biz ? ' concernant ' + biz : ''} :
+
+📅 ${dateStr}
+🔗 ${meetLink}
+
+Il vous suffit de cliquer sur le lien au moment convenu. À très bientôt !
+
+Guillaume — Couzzz`;
+}
+
+function copyQuickMsg() {
+  const text = document.getElementById('quickMsgPreview').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => toast('💬 Message copié !', 'success'));
+}
+
+// ── COMPTE RENDU VISIO ──
+function renderVisioNotesSection(p) {
+  const section = document.getElementById('visioNotesSection');
+  const showFor = ['meeting_booked', 'post_rdv', 'site_delivered', 'maintenance'];
+  if (!showFor.includes(p.status)) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('visioNotesInput').value = p.visio_notes || '';
+}
+
+async function saveVisioNotes() {
+  const notes = document.getElementById('visioNotesInput').value;
+  const payload = { visio_notes: notes, updated_at: new Date().toISOString() };
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  } else {
+    const p = allProspects.find(x => x.id === currentProspectId);
+    if (p) Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (p) p.visio_notes = notes;
+  toast('📝 Compte rendu sauvegardé ✓', 'success');
+}
+
+function selectSigner(name) {
+  _inviteSigner = name;
+  const active = 'flex:1;padding:0.55rem;border-radius:8px;border:2px solid var(--accent);background:rgba(79,70,229,0.1);color:var(--accent);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s';
+  const inactive = 'flex:1;padding:0.55rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.15s';
+  document.getElementById('signerGuillaume').style.cssText = name === 'Guillaume' ? active : inactive;
+  document.getElementById('signerAdrien').style.cssText = name === 'Adrien' ? active : inactive;
+  refreshInviteEmail();
+}
+
+function renderEmailInviteSection(p) {
+  const section = document.getElementById('emailInviteSection');
+  const showFor = ['interested', 'meeting_booked', 'callback'];
+  if (!showFor.includes(p.status)) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('inviteContactName').value = p.contact_name ? p.contact_name.split(' ')[0] : '';
+  document.getElementById('inviteMeetLink').value = p.rdv_link || '';
+  selectSigner(currentUser || 'Guillaume');
+}
+
+function refreshInviteEmail() {
+  const p = allProspects.find(x => x.id === currentProspectId);
+  const firstName = document.getElementById('inviteContactName').value.trim() || 'Madame, Monsieur';
+  const meetLink = document.getElementById('inviteMeetLink').value.trim() || '[lien Meet à insérer]';
+  const biz = p ? p.business_name : '';
+  document.getElementById('inviteEmailPreview').textContent =
+`Bonjour ${firstName},
+
+Suite à notre échange téléphonique, je vous confirme notre rendez-vous en visioconférence concernant la création de votre site internet${biz ? ' pour ' + biz : ''}.
+
+🔗 ${meetLink}
+
+Pour rejoindre l'appel, cliquez simplement sur le lien au moment convenu — aucune installation nécessaire.
+
+Nous aurons environ 20 à 30 minutes pour parcourir ensemble ce que nous pouvons mettre en place pour vous.
+
+N'hésitez pas à me contacter si vous avez la moindre question d'ici là.
+
+Bien cordialement,
+${_inviteSigner}
+GA design — Création de sites web pour artisans & commerçants`;
+}
+
+function copyInviteEmail() {
+  const p = allProspects.find(x => x.id === currentProspectId);
+  const text = document.getElementById('inviteEmailPreview').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    toast('✉️ Email copié !', 'success');
+    if (p) {
+      const meetLink = document.getElementById('inviteMeetLink').value.trim();
+      const update = { updated_at: new Date().toISOString() };
+      if (meetLink) { update.rdv_link = meetLink; p.rdv_link = meetLink; }
+      if (sb && Object.keys(update).length > 1) sb.from('prospects').update(update).eq('id', p.id);
+    }
+  });
+}
+
+function renderRdvSection(p) {
+  const section = document.getElementById('rdvSection');
+  const showStatuses = ['meeting_booked','post_rdv','site_delivered','maintenance'];
+  if (!showStatuses.includes(p.status)) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  const rdvDate = p.rdv_date ? new Date(p.rdv_date).toISOString().slice(0,16) : '';
+  document.getElementById('rdvDate').value = rdvDate;
+  document.getElementById('rdvType').value = p.rdv_type || 'presentiel';
+  document.getElementById('rdvLink').value = p.rdv_link || '';
+  document.getElementById('rdvDemoUrl').value = p.demo_url || '';
+  document.getElementById('rdvLinkGroup').style.display = (p.rdv_type === 'visio') ? 'block' : 'none';
+  document.getElementById('rdvType').onchange = function() {
+    document.getElementById('rdvLinkGroup').style.display = this.value === 'visio' ? 'block' : 'none';
+    saveRdvInfo();
+  };
+}
+
+async function saveRdvInfo() {
+  const rdvDateVal = document.getElementById('rdvDate').value;
+  const payload = {
+    rdv_date: rdvDateVal ? new Date(rdvDateVal).toISOString() : null,
+    rdv_type: document.getElementById('rdvType').value,
+    rdv_link: document.getElementById('rdvLink').value.trim() || null,
+    demo_url: document.getElementById('rdvDemoUrl').value.trim() || null,
+    updated_at: new Date().toISOString()
+  };
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  } else {
+    const p = allProspects.find(x => x.id === currentProspectId);
+    if (p) Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (p) Object.assign(p, payload);
+}
+
+// ══ COPY ══
+function copyName(name) {
+  navigator.clipboard.writeText(name).then(() => toast('📋 "' + name + '" copié !', ''));
+}
+function searchGoogle(query) {
+  window.open('https://www.google.com/search?q=' + encodeURIComponent(query.trim()), '_blank');
+}
+function searchBCE(name) {
+  const q = encodeURIComponent(name.trim());
+  window.open('https://kbopub.economie.fgov.be/kbopub/zoeknaamfonetischform.html?lang=FR&naam=' + q + '&_oudeBenaming=on&searchWord=' + q + '&typeLijst=START&actionLst=Zoek', '_blank');
+}
+
+// ══ PASSWORD ══
+const CRM_PASSWORD = 'Couzzz26';
+
+function checkPassword() {
+  const val = document.getElementById('pw-input').value;
+  if (val === CRM_PASSWORD) {
+    sessionStorage.setItem('crmAuth', '1');
+    document.getElementById('password-screen').style.display = 'none';
+    const saved = localStorage.getItem('crmUser');
+    if (saved) { selectUser(saved); return; }
+    document.getElementById('setup').style.display = 'flex';
+  } else {
+    document.getElementById('pw-error').textContent = 'Mot de passe incorrect.';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+// ══ USER SELECTION ══
+function selectUser(name) {
+  currentUser = name;
+  localStorage.setItem('crmUser', name);
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('sidebarUser').textContent = '👤 ' + name;
+  document.getElementById('dashUser').textContent = name;
+  document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-BE', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  sb = initSupabase();
+  loadAll();
+}
+
+function changeUser() {
+  localStorage.removeItem('crmUser');
+  sessionStorage.removeItem('crmAuth');
+  location.reload();
+}
+
+// ══ NAVIGATION ══
+document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + btn.dataset.page).classList.add('active');
+    if (btn.dataset.page === 'callbacks') loadCallbacks();
+    if (btn.dataset.page === 'history') loadHistory();
+    if (btn.dataset.page === 'calendar') { calYear = new Date().getFullYear(); calMonth = new Date().getMonth(); renderCalendar(); }
+    if (btn.dataset.page === 'kpi') loadKPI();
+    if (btn.dataset.page === 'post-rdv') loadPipelinePage('post_rdv', 'postRdvList');
+    if (btn.dataset.page === 'sites') loadPipelinePage('site_delivered', 'sitesList');
+    if (btn.dataset.page === 'maintenance') loadPipelinePage('maintenance', 'maintenanceList');
+    if (btn.dataset.page === 'archives') loadArchives();
+  });
+});
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ══ TOAST ══
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+// ══ MODAL ══
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ══ LOAD ALL ══
+async function loadAll() {
+  await loadProspects();
+  loadDashboard();
+  populateFilters();
+}
+
+// ══════════════════════════════════════════
+//  PROSPECTS
+// ══════════════════════════════════════════
+async function loadProspects() {
+  if (!sb) {
+    allProspects = JSON.parse(localStorage.getItem('prospects') || '[]');
+    renderProspectsTable(allProspects);
+    return;
+  }
+  const { data, error } = await sb.from('prospects').select('*, calls(id,called_at,status,called_by)').order('created_at', { ascending: false });
+  if (error) { toast('Erreur chargement prospects', 'error'); return; }
+  allProspects = data || [];
+  renderProspectsTable(allProspects);
+}
+
+const ARCHIVED_STATUSES = ['not_interested', 'has_website'];
+
+function renderProspectsTable(list) {
+  const active = list.filter(p => !ARCHIVED_STATUSES.includes(p.status));
+  list = active;
+  const tbody = document.getElementById('prospectsTable');
+  document.getElementById('prospectsCount').textContent = list.length + ' prospect' + (list.length !== 1 ? 's' : '');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="icon">🏢</div><p>Aucun prospect. Ajoutez-en un !</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(p => {
+    const lastCall = p.calls && p.calls.length ? p.calls.sort((a,b) => new Date(b.called_at) - new Date(a.called_at))[0] : null;
+    return `<tr onclick="openDetail('${p.id}')">
+      <td class="primary">${p.business_name}<button class="copy-btn" onclick="event.stopPropagation();searchGoogle('${p.business_name.replace(/'/g,"\\'")} ${p.city||''}')" title="Chercher sur Google">🔍</button><button class="copy-btn" onclick="event.stopPropagation();searchBCE('${p.business_name.replace(/'/g,"\\'")}') " title="Chercher sur la BCE (gérant)" style="font-size:0.7rem;font-weight:700;color:var(--amber)">BCE</button></td>
+      <td>${p.sector || '—'}</td>
+      <td>${p.city || '—'}</td>
+      <td>${p.phone ? `<a href="tel:${p.phone}" onclick="event.stopPropagation()" style="color:var(--accent-h)">${p.phone}</a>` : '—'}</td>
+      <td>${p.has_website ? (p.website_url ? `<a href="${p.website_url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--green)">🌐 Oui</a>` : '🌐 Oui') : '<span style="color:var(--text-muted)">Non</span>'}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td style="font-size:0.75rem;color:var(--text-muted)">${lastCall ? timeAgo(lastCall.called_at) : '—'}</td>
+      <td><div class="table-actions">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail('${p.id}')">📞 Appeler</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteProspect('${p.id}')" style="color:var(--red-bg)">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function statusBadge(status) {
+  const map = {
+    to_call: '📋 À appeler', no_answer: '📵 Pas répondu', callback: '⏰ Rappeler',
+    not_interested: '🚫 Pas intéressé', meeting_booked: '🎯 RDV décroché', converted: '✅ Converti',
+    voicemail: '📬 Messagerie', interested: '👍 Intéressé',
+    post_rdv: '🤝 Après RDV', site_delivered: '🚀 Site livré', maintenance: '🔧 Maintenance',
+    has_website: '🌐 Déjà un site web'
+  };
+  return `<span class="badge badge-${status}">${map[status] || status}</span>`;
+}
+
+function timeAgo(date) {
+  const d = new Date(date), now = new Date();
+  const diff = Math.floor((now - d) / 60000);
+  if (diff < 1) return 'À l\'instant';
+  if (diff < 60) return `il y a ${diff}min`;
+  if (diff < 1440) return `il y a ${Math.floor(diff/60)}h`;
+  return `il y a ${Math.floor(diff/1440)}j`;
+}
+
+// ── SECTOR DROPDOWN ──
+function toggleSectorDD() {
+  const panel = document.getElementById('sectorDDPanel');
+  const isOpen = panel.style.display !== 'none';
+  if (isOpen) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  document.getElementById('sectorDDSearch').value = '';
+  buildSectorDDList('');
+  document.getElementById('sectorDDSearch').focus();
+}
+function buildSectorDDList(filter) {
+  const sectors = [...new Set(allProspects.map(p => p.sector).filter(Boolean))].sort();
+  const filtered = filter ? sectors.filter(s => s.toLowerCase().includes(filter.toLowerCase())) : sectors;
+  document.getElementById('sectorDDList').innerHTML =
+    `<div onclick="selectSectorDD('')" style="padding:0.35rem 0.5rem;cursor:pointer;border-radius:4px;font-size:0.82rem;color:${!_currentSector ? 'var(--accent)' : 'var(--text-soft)'}">Tous secteurs</div>` +
+    filtered.map(s => `<div onclick="selectSectorDD('${s.replace(/'/g,"\\'")}')" style="padding:0.35rem 0.5rem;cursor:pointer;border-radius:4px;font-size:0.82rem;color:${_currentSector===s ? 'var(--accent)' : 'var(--text-soft)'}">${s}</div>`).join('');
+}
+function filterSectorDD() { buildSectorDDList(document.getElementById('sectorDDSearch').value); }
+function selectSectorDD(val) {
+  _currentSector = val;
+  document.getElementById('sectorDDLabel').textContent = val || 'Tous secteurs';
+  document.getElementById('sectorDDPanel').style.display = 'none';
+  filterProspects();
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('sectorDDWrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('sectorDDPanel').style.display = 'none';
+});
+
+// Filtres
+function filterProspects() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const sector = _currentSector;
+  const city = document.getElementById('filterCity').value;
+  const website = document.getElementById('filterWebsite').value;
+  const status = document.getElementById('filterStatus').value;
+  const filtered = allProspects.filter(p => {
+    if (search && !((p.business_name||'').toLowerCase().includes(search) || (p.contact_name||'').toLowerCase().includes(search) || (p.city||'').toLowerCase().includes(search) || (p.sector||'').toLowerCase().includes(search))) return false;
+    if (sector && p.sector !== sector) return false;
+    if (city && p.city !== city) return false;
+    if (website === 'yes' && !p.has_website) return false;
+    if (website === 'no' && p.has_website) return false;
+    if (status && p.status !== status) return false;
+    return true;
+  });
+  renderProspectsTable(filtered);
+}
+
+function resetFilters() {
+  ['searchInput','filterCity','filterWebsite','filterStatus'].forEach(id => { document.getElementById(id).value = ''; });
+  _currentSector = '';
+  document.getElementById('sectorDDLabel').textContent = 'Tous secteurs';
+  renderProspectsTable(allProspects);
+}
+
+function populateFilters() {
+  const cities = [...new Set(allProspects.map(p => p.city).filter(Boolean))].sort();
+  document.getElementById('filterCity').innerHTML = '<option value="">Toutes villes</option>' + cities.map(c => `<option>${c}</option>`).join('');
+  const dl = document.getElementById('sectorList');
+  if (dl) {
+    const sectors = [...new Set(allProspects.map(p => p.sector).filter(Boolean))].sort();
+    dl.innerHTML = sectors.map(s => `<option value="${s}">`).join('');
+  }
+}
+
+// ══ ADD / EDIT PROSPECT ══
+function openAddProspect() {
+  editingProspectId = null;
+  document.getElementById('modalProspectTitle').textContent = 'Nouveau prospect';
+  ['f_business_name','f_contact_name','f_sector','f_city','f_phone','f_email','f_years','f_website_url','f_notes'].forEach(id => { document.getElementById(id).value = ''; });
+  websiteOn = false;
+  document.getElementById('toggleWebsite').className = 'toggle';
+  document.getElementById('toggleWebsiteLabel').textContent = 'Non';
+  document.getElementById('websiteUrlGroup').style.display = 'none';
+  openModal('modalProspect');
+}
+
+function editCurrentProspect() {
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (!p) return;
+  editingProspectId = p.id;
+  document.getElementById('modalProspectTitle').textContent = 'Modifier prospect';
+  document.getElementById('f_business_name').value = p.business_name || '';
+  document.getElementById('f_contact_name').value = p.contact_name || '';
+  document.getElementById('f_sector').value = p.sector || '';
+  document.getElementById('f_city').value = p.city || '';
+  document.getElementById('f_phone').value = p.phone || '';
+  document.getElementById('f_email').value = p.email || '';
+  document.getElementById('f_years').value = p.years_in_business || '';
+  document.getElementById('f_deal_value').value = p.deal_value || 1200;
+  document.getElementById('f_website_url').value = p.website_url || '';
+  document.getElementById('f_notes').value = p.notes || '';
+  websiteOn = p.has_website;
+  document.getElementById('toggleWebsite').className = 'toggle' + (websiteOn ? ' on' : '');
+  document.getElementById('toggleWebsiteLabel').textContent = websiteOn ? 'Oui' : 'Non';
+  document.getElementById('websiteUrlGroup').style.display = websiteOn ? 'block' : 'none';
+  closeModal('modalDetail');
+  openModal('modalProspect');
+}
+
+function toggleWebsiteSwitch() {
+  websiteOn = !websiteOn;
+  document.getElementById('toggleWebsite').className = 'toggle' + (websiteOn ? ' on' : '');
+  document.getElementById('toggleWebsiteLabel').textContent = websiteOn ? 'Oui' : 'Non';
+  document.getElementById('websiteUrlGroup').style.display = websiteOn ? 'block' : 'none';
+}
+
+async function saveProspect() {
+  const name = document.getElementById('f_business_name').value.trim();
+  if (!name) { toast('Le nom est requis', 'error'); return; }
+  const duplicate = allProspects.find(p => p.business_name.toLowerCase() === name.toLowerCase() && p.id !== editingProspectId);
+  if (duplicate) { toast('⚠️ Ce prospect existe déjà dans le CRM', 'error'); return; }
+  const btn = document.getElementById('saveProspectBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const payload = {
+    business_name: name,
+    contact_name: document.getElementById('f_contact_name').value.trim() || null,
+    sector: document.getElementById('f_sector').value.trim() || null,
+    city: document.getElementById('f_city').value.trim() || null,
+    phone: document.getElementById('f_phone').value.trim() || null,
+    email: document.getElementById('f_email').value.trim() || null,
+    years_in_business: parseInt(document.getElementById('f_years').value) || null,
+    deal_value: parseFloat(document.getElementById('f_deal_value').value) || 1200,
+    has_website: websiteOn,
+    website_url: websiteOn ? (document.getElementById('f_website_url').value.trim() || null) : null,
+    notes: document.getElementById('f_notes').value.trim() || null,
+    created_by: currentUser,
+    updated_at: new Date().toISOString()
+  };
+  if (sb) {
+    let res;
+    if (editingProspectId) {
+      res = await sb.from('prospects').update(payload).eq('id', editingProspectId);
+    } else {
+      res = await sb.from('prospects').insert({ ...payload, status: 'to_call' });
+    }
+    if (res.error) { toast('Erreur: ' + res.error.message, 'error'); btn.disabled = false; btn.textContent = 'Enregistrer'; return; }
+  } else {
+    if (editingProspectId) {
+      const idx = allProspects.findIndex(p => p.id === editingProspectId);
+      if (idx !== -1) allProspects[idx] = { ...allProspects[idx], ...payload };
+    } else {
+      allProspects.unshift({ id: crypto.randomUUID(), status: 'to_call', created_at: new Date().toISOString(), calls: [], ...payload });
+    }
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  closeModal('modalProspect');
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+  toast(editingProspectId ? 'Prospect mis à jour ✓' : 'Prospect ajouté ✓', 'success');
+  await loadAll();
+}
+
+async function deleteProspect(id) {
+  if (!confirm('Supprimer ce prospect ?')) return;
+  if (sb) {
+    await sb.from('prospects').delete().eq('id', id);
+  } else {
+    allProspects = allProspects.filter(p => p.id !== id);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  toast('Prospect supprimé', '');
+  await loadAll();
+}
+
+// ══ DETAIL + CALLS ══
+async function openDetail(id) {
+  currentProspectId = id;
+  const p = allProspects.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('detailTitle').textContent = p.business_name;
+
+  // Info panel
+  document.getElementById('detailInfo').innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem">
+      ${statusBadge(p.status)}
+      ${p.has_website ? '<span class="badge" style="background:var(--green-bg);color:#4ADE80">🌐 Site web</span>' : '<span class="badge" style="background:var(--red-bg);color:#F87171">🚫 Sans site</span>'}
+      ${p.sector ? `<span class="badge" style="background:var(--surface2);color:var(--text-soft)">🏷 ${p.sector}</span>` : ''}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;font-size:0.83rem">
+      ${p.city ? `<div><span style="color:var(--text-muted)">📍 Ville</span><br><strong>${p.city}</strong></div>` : ''}
+      ${p.phone ? `<div><span style="color:var(--text-muted)">📞 Tél</span><br><a href="tel:${p.phone}" style="color:var(--accent-h);font-weight:600">${p.phone}</a></div>` : ''}
+      ${p.email ? `<div><span style="color:var(--text-muted)">✉️ Email</span><br><a href="mailto:${p.email}" style="color:var(--accent-h)">${p.email}</a></div>` : ''}
+      ${p.website_url ? `<div><span style="color:var(--text-muted)">🌐 Site</span><br><a href="${p.website_url}" target="_blank" style="color:var(--green)">${p.website_url.replace(/^https?:\/\//, '')}</a></div>` : ''}
+      ${p.years_in_business ? `<div><span style="color:var(--text-muted)">📅 Ancienneté</span><br><strong>${p.years_in_business} ans</strong></div>` : ''}
+      ${p.contact_name ? `<div><span style="color:var(--text-muted)">👤 Contact</span><br><strong>${p.contact_name}</strong></div>` : ''}
+    </div>
+    ${p.notes ? `<div style="margin-top:0.8rem;padding:0.7rem;background:var(--surface2);border-radius:8px;font-size:0.82rem;color:var(--text-soft)">${p.notes}</div>` : ''}
+  `;
+
+  // Script d'appel
+  renderScriptPanel(p);
+
+  // Message rapide (pendant le call)
+  renderQuickMsgSection(p);
+
+  // Invitation email section
+  renderEmailInviteSection(p);
+
+  // Compte rendu visio
+  renderVisioNotesSection(p);
+
+  // RDV section
+  renderRdvSection(p);
+
+  // Pipeline section
+  renderPipelineSection(p);
+
+  // Call history
+  await loadDetailHistory(id);
+  openModal('modalDetail');
+}
+
+async function loadDetailHistory(id) {
+  let calls = [];
+  if (sb) {
+    const { data } = await sb.from('calls').select('*').eq('prospect_id', id).order('called_at', { ascending: false });
+    calls = data || [];
+  } else {
+    const p = allProspects.find(x => x.id === id);
+    calls = (p?.calls || []).sort((a,b) => new Date(b.called_at) - new Date(a.called_at));
+  }
+  const statusLabel = { no_answer:'Pas répondu', not_interested:'Pas intéressé', has_website:'Déjà un site web', callback:'Rappeler', meeting_booked:'RDV décroché !', voicemail:'Messagerie', interested:'Intéressé' };
+  const el = document.getElementById('detailCallHistory');
+  if (!calls.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem;padding:0.5rem 0">Aucun appel enregistré.</div>'; return; }
+  el.innerHTML = '<div class="call-history">' + calls.map(c => `
+    <div class="call-item ${c.status}">
+      <div class="call-meta">
+        <span class="call-by">👤 ${c.called_by}</span>
+        <span class="badge badge-${c.status}">${statusLabel[c.status] || c.status}</span>
+        <span class="call-date">${new Date(c.called_at).toLocaleDateString('fr-BE', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+        ${c.callback_time ? `<span style="font-size:0.72rem;color:var(--purple)">⏰ Rappel: ${new Date(c.callback_time).toLocaleDateString('fr-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
+      </div>
+      ${c.comment ? `<div class="call-comment">${c.comment}</div>` : ''}
+    </div>
+  `).join('') + '</div>';
+}
+
+// ── LOG CALL ──
+async function logCall(status, callbackTime = null) {
+  const comment = document.getElementById('callComment').value.trim();
+  const call = {
+    prospect_id: currentProspectId,
+    called_by: currentUser,
+    called_at: new Date().toISOString(),
+    status,
+    callback_time: callbackTime,
+    comment: comment || null
+  };
+  let newProspectStatus = status;
+  if (status === 'callback') newProspectStatus = 'callback';
+
+  if (sb) {
+    await sb.from('calls').insert(call);
+    await sb.from('prospects').update({ status: newProspectStatus, callback_time: callbackTime, updated_at: new Date().toISOString() }).eq('id', currentProspectId);
+  } else {
+    const p = allProspects.find(x => x.id === currentProspectId);
+    if (p) {
+      if (!p.calls) p.calls = [];
+      p.calls.push({ id: crypto.randomUUID(), ...call });
+      p.status = newProspectStatus;
+      p.callback_time = callbackTime;
+    }
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  document.getElementById('callComment').value = '';
+  const labels = { no_answer:'Appel logué — Pas répondu', not_interested:'🚫 Archivé — Pas intéressé', has_website:'🌐 Archivé — Déjà un site web', meeting_booked:'🎯 RDV décroché !', voicemail:'Messagerie enregistrée', interested:'👍 Intéressé noté', callback:'⏰ Rappel programmé' };
+  toast(labels[status] || 'Appel logué ✓', status === 'meeting_booked' ? 'success' : '');
+  if (status === 'meeting_booked') launchConfetti();
+  await loadAll();
+  await loadDetailHistory(currentProspectId);
+  // Sync prospect status in modal
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (p) openDetail(currentProspectId);
+}
+
+// ── CALLBACK PICKER ──
+function openCallbackPicker() {
+  const presets = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','17:30','18:00'];
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('timePresets').innerHTML = presets.map(t =>
+    `<button class="time-preset" onclick="selectPreset('${today}T${t}','${t}')">${t}</button>`
+  ).join('');
+  const now = new Date();
+  now.setMinutes(Math.ceil(now.getMinutes()/15)*15, 0, 0);
+  document.getElementById('callbackDatetime').value = now.toISOString().slice(0,16);
+  document.getElementById('callbackComment').value = document.getElementById('callComment').value;
+  openModal('modalCallback');
+}
+
+function selectPreset(val, label) {
+  document.getElementById('callbackDatetime').value = val;
+  document.querySelectorAll('.time-preset').forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+
+async function confirmCallback() {
+  const dt = document.getElementById('callbackDatetime').value;
+  if (!dt) { toast('Choisissez une heure', 'error'); return; }
+  const comment = document.getElementById('callbackComment').value.trim();
+  if (comment) document.getElementById('callComment').value = comment;
+  closeModal('modalCallback');
+  await logCall('callback', new Date(dt).toISOString());
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+async function loadDashboard() {
+  const today = new Date().toDateString();
+  let allCalls = [];
+  if (sb) {
+    const { data } = await sb.from('calls').select('*').order('called_at', { ascending: false }).limit(50);
+    allCalls = data || [];
+  } else {
+    allProspects.forEach(p => { if (p.calls) allCalls.push(...p.calls); });
+    allCalls.sort((a,b) => new Date(b.called_at) - new Date(a.called_at));
+  }
+
+  const activeProspects = allProspects.filter(p => !ARCHIVED_STATUSES.includes(p.status));
+  document.getElementById('stat-total').textContent = activeProspects.length;
+  const todayCalls = allCalls.filter(c => new Date(c.called_at).toDateString() === today).length;
+  document.getElementById('stat-today').textContent = todayCalls;
+  const pct = Math.min(100, Math.round(todayCalls / dailyGoal * 100));
+  document.getElementById('stat-today-bar').style.width = pct + '%';
+  document.getElementById('goalDisplay').textContent = dailyGoal;
+  // Sparkline trend (7 jours)
+  const sparkVals = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    const de = new Date(d); de.setHours(23,59,59,999);
+    sparkVals.push(allCalls.filter(c=>{ const cd=new Date(c.called_at); return cd>=d&&cd<=de; }).length);
+  }
+  renderSparkline('dashSparkline', sparkVals, '#60A5FA');
+  const cbs = allProspects.filter(p => p.status === 'callback');
+  document.getElementById('stat-callbacks').textContent = cbs.length;
+  document.getElementById('stat-meetings').textContent = allProspects.filter(p => p.status === 'meeting_booked').length;
+
+  // Pipeline value
+  const pipelineStatuses = ['interested','meeting_booked','post_rdv'];
+  const pipelineVal = allProspects.filter(p => pipelineStatuses.includes(p.status)).reduce((s,p) => s + (p.deal_value || 1200), 0);
+  document.getElementById('stat-pipeline').textContent = pipelineVal.toLocaleString('fr-BE') + ' €';
+
+  // Conversion rate
+  const totalCalled = allProspects.filter(p => p.status !== 'to_call').length;
+  const meetings = allProspects.filter(p => ['meeting_booked','post_rdv','site_delivered','maintenance'].includes(p.status)).length;
+  const rate = totalCalled > 0 ? Math.round(meetings / totalCalled * 100) : 0;
+  document.getElementById('stat-rate').textContent = rate + '%';
+
+  // Interested + stale
+  const interested = allProspects.filter(p => p.status === 'interested');
+  document.getElementById('stat-interested').textContent = interested.length;
+  const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  const stale = interested.filter(p => {
+    const lastCall = p.calls && p.calls.length ? Math.max(...p.calls.map(c => new Date(c.called_at).getTime())) : new Date(p.created_at).getTime();
+    return lastCall < threeDaysAgo;
+  });
+  document.getElementById('stat-stale-label').textContent = stale.length > 0 ? `⚠️ ${stale.length} sans suivi depuis 3j` : 'À jour ✓';
+  const staleEl = document.getElementById('staleAlerts');
+  staleEl.innerHTML = stale.length ? stale.map(p => `<div class="stale-alert" onclick="openDetail('${p.id}')">⚠️ <strong>${p.business_name}</strong> — Intéressé mais sans suivi depuis plus de 3 jours. Relancer !</div>`).join('') : '';
+
+  // Sector stats
+  const sectors = {};
+  allProspects.forEach(p => {
+    const s = p.sector || 'Autre';
+    if (!sectors[s]) sectors[s] = { total:0, called:0, rdv:0 };
+    sectors[s].total++;
+    if (p.status !== 'to_call') sectors[s].called++;
+    if (['meeting_booked','post_rdv','site_delivered','maintenance'].includes(p.status)) sectors[s].rdv++;
+  });
+  const topSectors = Object.entries(sectors).sort((a,b) => b[1].total - a[1].total).slice(0, 8);
+  document.getElementById('dashSectorStats').innerHTML = topSectors.length ? `
+    <table class="sector-table">
+      <thead><tr><th>Secteur</th><th>Total</th><th>Appelés</th><th>RDV</th><th>Taux</th></tr></thead>
+      <tbody>${topSectors.map(([s,d]) => `<tr>
+        <td>${s}</td><td>${d.total}</td><td>${d.called}</td><td>${d.rdv}</td>
+        <td class="rate">${d.called > 0 ? Math.round(d.rdv/d.called*100) : 0}%</td>
+      </tr>`).join('')}</tbody>
+    </table>` : '<div class="empty"><p>Aucune donnée</p></div>';
+
+  // Next prospect card
+  const next = allProspects.find(p => p.status === 'to_call' || p.status === 'callback');
+  const nextEl = document.getElementById('dashNextProspect');
+  if (next) {
+    nextEl.innerHTML = `<div class="callback-item" onclick="openDetail('${next.id}')">
+      <div class="callback-info">
+        <div class="callback-name">${next.business_name}</div>
+        <div class="callback-detail">${[next.city, next.sector, next.phone].filter(Boolean).join(' · ')}</div>
+      </div>
+      ${statusBadge(next.status)}
+    </div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">${allProspects.filter(p=>p.status==='to_call').length} prospects restants à appeler</div>`;
+  } else {
+    nextEl.innerHTML = '<div class="empty"><div class="icon">🎉</div><p>Tous les prospects ont été contactés !</p></div>';
+  }
+
+  // Badge nav
+  const badge = document.getElementById('callbackBadge');
+  badge.textContent = cbs.length;
+  badge.style.display = cbs.length ? 'inline-block' : 'none';
+  const postRdvCount = allProspects.filter(p => p.status === 'post_rdv').length;
+  const sitesCount = allProspects.filter(p => p.status === 'site_delivered').length;
+  const maintenanceCount = allProspects.filter(p => p.status === 'maintenance').length;
+  const b2 = document.getElementById('postRdvBadge'); if(b2){b2.textContent=postRdvCount;b2.style.display=postRdvCount?'inline-block':'none';}
+  const b3 = document.getElementById('sitesBadge'); if(b3){b3.textContent=sitesCount;b3.style.display=sitesCount?'inline-block':'none';}
+  const b4 = document.getElementById('maintenanceBadge'); if(b4){b4.textContent=maintenanceCount;b4.style.display=maintenanceCount?'inline-block':'none';}
+  const archivesCount = allProspects.filter(p => ARCHIVED_STATUSES.includes(p.status)).length;
+  const b5 = document.getElementById('archivesBadge'); if(b5){b5.textContent=archivesCount;b5.style.display=archivesCount?'inline-block':'none';}
+
+  // Upcoming callbacks
+  const upcoming = cbs.filter(p => p.callback_time).sort((a,b) => new Date(a.callback_time) - new Date(b.callback_time)).slice(0,5);
+  const el = document.getElementById('dashCallbacks');
+  if (!upcoming.length) { el.innerHTML = '<div class="empty"><div class="icon">✅</div><p>Aucun rappel prévu</p></div>'; }
+  else el.innerHTML = upcoming.map(p => {
+    const t = new Date(p.callback_time);
+    const now = new Date();
+    const diff = Math.floor((t - now) / 60000);
+    const cls = diff < 0 ? 'time-urgent' : diff < 30 ? 'time-soon' : 'time-ok';
+    const label = diff < 0 ? 'En retard' : diff < 60 ? diff + 'min' : Math.floor(diff/60) + 'h';
+    return `<div class="callback-item" onclick="openDetail('${p.id}')">
+      <div class="callback-time">${t.toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="callback-info">
+        <div class="callback-name">${p.business_name}</div>
+        <div class="callback-detail">${p.city || ''} ${p.sector ? '· ' + p.sector : ''}</div>
+      </div>
+      <span class="time-badge ${cls}">${label}</span>
+    </div>`;
+  }).join('');
+
+  // Call counter card
+  renderCallCounter();
+
+  // Recent activity
+  const act = document.getElementById('dashActivity');
+  const recent = allCalls.slice(0,8);
+  if (!recent.length) { act.innerHTML = '<div class="empty"><div class="icon">📋</div><p>Aucune activité</p></div>'; return; }
+  const statusIcons = { no_answer:'📵', not_interested:'🚫', callback:'⏰', meeting_booked:'🎯', voicemail:'📬', interested:'👍' };
+  act.innerHTML = recent.map(c => {
+    const p = allProspects.find(x => x.id === c.prospect_id);
+    return `<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.8rem">
+      <span>${statusIcons[c.status] || '📞'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p ? p.business_name : '—'}</div>
+        <div style="color:var(--text-muted)">${c.called_by} · ${timeAgo(c.called_at)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  CALLBACKS PAGE
+// ══════════════════════════════════════════
+function loadCallbacks() {
+  const search = (document.getElementById('cbSearchInput')?.value || '').toLowerCase();
+  let cbs = allProspects.filter(p => p.status === 'callback');
+  if (search) cbs = cbs.filter(p => (p.business_name||'').toLowerCase().includes(search) || (p.city||'').toLowerCase().includes(search) || (p.sector||'').toLowerCase().includes(search));
+  cbs.sort((a,b) => {
+    if (!a.callback_time && !b.callback_time) return 0;
+    if (!a.callback_time) return 1;
+    if (!b.callback_time) return -1;
+    return new Date(a.callback_time) - new Date(b.callback_time);
+  });
+  const el = document.getElementById('callbacksList');
+  if (!cbs.length) { el.innerHTML = '<div class="empty"><div class="icon">✅</div><p>Aucun rappel en attente</p></div>'; return; }
+  const now = new Date();
+  el.innerHTML = cbs.map(p => {
+    const t = p.callback_time ? new Date(p.callback_time) : null;
+    const diff = t ? Math.floor((t - now) / 60000) : null;
+    const cls = diff === null ? 'time-ok' : diff < 0 ? 'time-urgent' : diff < 30 ? 'time-soon' : 'time-ok';
+    const label = diff === null ? 'Dès que possible' : diff < 0 ? 'En retard' : diff < 60 ? diff + 'min' : Math.floor(diff/60) + 'h';
+    return `<div class="callback-item" onclick="openDetail('${p.id}')">
+      <div class="callback-time">${t ? t.toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'}) : '—'}</div>
+      <div class="callback-info">
+        <div class="callback-name">${p.business_name}</div>
+        <div class="callback-detail">${[p.city, p.sector, p.phone].filter(Boolean).join(' · ')}</div>
+      </div>
+      <span class="time-badge ${cls}">${label}</span>
+      <div class="callback-actions">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail('${p.id}')">📞 Appeler</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  ARCHIVES PAGE
+// ══════════════════════════════════════════
+function loadArchives() {
+  const niSearch = (document.getElementById('archivesNISearch')?.value || '').toLowerCase();
+  const hwSearch = (document.getElementById('archivesHWSearch')?.value || '').toLowerCase();
+
+  const notInterested = allProspects.filter(p => p.status === 'not_interested' && (!niSearch || (p.business_name||'').toLowerCase().includes(niSearch) || (p.city||'').toLowerCase().includes(niSearch)));
+  const hasWebsite = allProspects.filter(p => p.status === 'has_website' && (!hwSearch || (p.business_name||'').toLowerCase().includes(hwSearch) || (p.city||'').toLowerCase().includes(hwSearch)));
+
+  document.getElementById('archivesNotInterestedCount').textContent = notInterested.length + ' contact' + (notInterested.length !== 1 ? 's' : '');
+  document.getElementById('archivesHasWebCount').textContent = hasWebsite.length + ' contact' + (hasWebsite.length !== 1 ? 's' : '');
+
+  const renderArchiveList = (list) => {
+    if (!list.length) return '<div class="empty" style="padding:2rem"><p>Aucun contact</p></div>';
+    return list.map(p => `
+      <div class="callback-item" onclick="openDetail('${p.id}')" style="cursor:pointer">
+        <div class="callback-info">
+          <div class="callback-name">${p.business_name}</div>
+          <div class="callback-detail">${[p.city, p.sector, p.phone].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();reactivateProspect('${p.id}')" title="Remettre en prospection">↩️ Réactiver</button>
+        </div>
+      </div>`).join('');
+  };
+
+  document.getElementById('archivesNotInterested').innerHTML = renderArchiveList(notInterested);
+  document.getElementById('archivesHasWebsite').innerHTML = renderArchiveList(hasWebsite);
+
+  // Update badge
+  const total = allProspects.filter(p => ARCHIVED_STATUSES.includes(p.status)).length;
+  const b = document.getElementById('archivesBadge');
+  if (b) { b.textContent = total; b.style.display = total ? 'inline-block' : 'none'; }
+}
+
+async function reactivateProspect(id) {
+  const p = allProspects.find(x => x.id === id);
+  if (!p) return;
+  const payload = { status: 'to_call', updated_at: new Date().toISOString() };
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', id);
+  } else {
+    Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  Object.assign(p, payload);
+  toast('↩️ ' + p.business_name + ' remis en prospection', 'success');
+  await loadAll();
+  loadArchives();
+}
+
+// ══════════════════════════════════════════
+//  HISTORY PAGE
+// ══════════════════════════════════════════
+async function loadHistory() {
+  const search = (document.getElementById('histSearchInput')?.value || '').toLowerCase();
+  const userFilter = document.getElementById('histFilterUser')?.value || '';
+  const statusFilter = document.getElementById('histFilterStatus')?.value || '';
+  let allCalls = [];
+  if (sb) {
+    let q = sb.from('calls').select('*, prospects(business_name,city,sector)').order('called_at', { ascending: false }).limit(200);
+    if (userFilter) q = q.eq('called_by', userFilter);
+    if (statusFilter) q = q.eq('status', statusFilter);
+    const { data } = await q;
+    allCalls = data || [];
+  } else {
+    allProspects.forEach(p => { if (p.calls) p.calls.forEach(c => allCalls.push({ ...c, prospects: { business_name: p.business_name, city: p.city, sector: p.sector } })); });
+    allCalls.sort((a,b) => new Date(b.called_at) - new Date(a.called_at));
+    if (userFilter) allCalls = allCalls.filter(c => c.called_by === userFilter);
+    if (statusFilter) allCalls = allCalls.filter(c => c.status === statusFilter);
+  }
+  if (search) allCalls = allCalls.filter(c => (c.prospects?.business_name||'').toLowerCase().includes(search) || (c.comment||'').toLowerCase().includes(search));
+
+  const el = document.getElementById('historyList');
+  if (!allCalls.length) { el.innerHTML = '<div class="empty"><div class="icon">📋</div><p>Aucun appel</p></div>'; return; }
+  const statusLabel = { no_answer:'Pas répondu', not_interested:'Pas intéressé', callback:'Rappeler', meeting_booked:'RDV décroché !', voicemail:'Messagerie', interested:'Intéressé' };
+  const statusIcons = { no_answer:'📵', not_interested:'🚫', callback:'⏰', meeting_booked:'🎯', voicemail:'📬', interested:'👍' };
+  el.innerHTML = '<div class="call-history">' + allCalls.map(c => `
+    <div class="call-item ${c.status}" onclick="openDetail('${c.prospect_id}')" style="cursor:pointer">
+      <div class="call-meta">
+        <span style="font-size:1rem">${statusIcons[c.status] || '📞'}</span>
+        <span class="call-by" style="color:var(--text)">${c.prospects?.business_name || '—'}</span>
+        <span class="badge badge-${c.status}">${statusLabel[c.status] || c.status}</span>
+        <span class="call-by">👤 ${c.called_by}</span>
+        <span class="call-date">${new Date(c.called_at).toLocaleDateString('fr-BE',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      ${c.prospects?.city || c.prospects?.sector ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem">${[c.prospects.city, c.prospects.sector].filter(Boolean).join(' · ')}</div>` : ''}
+      ${c.comment ? `<div class="call-comment">${c.comment}</div>` : ''}
+      ${c.callback_time ? `<div style="font-size:0.75rem;color:var(--purple);margin-top:0.3rem">⏰ Rappel prévu : ${new Date(c.callback_time).toLocaleDateString('fr-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
+    </div>
+  `).join('') + '</div>';
+}
+
+// ══════════════════════════════════════════
+//  CONFETTI
+// ══════════════════════════════════════════
+function launchConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'confetti-canvas';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const colors = ['#4F46E5','#16A34A','#D97706','#F59E0B','#10B981','#6366F1','#EC4899','#F87171','#34D399','#FBBF24'];
+  const pieces = Array.from({length: 180}, () => ({
+    x: Math.random() * canvas.width, y: -20,
+    r: Math.random() * 7 + 3,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    tiltAngle: Math.random() * Math.PI * 2,
+    tiltSpeed: (Math.random() - 0.5) * 0.15,
+    vx: (Math.random() - 0.5) * 5,
+    vy: Math.random() * 4 + 2,
+    shape: Math.random() > 0.5 ? 'rect' : 'circle'
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.tiltAngle += p.tiltSpeed;
+      p.x += p.vx + Math.sin(frame / 30) * 0.5;
+      p.y += p.vy;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.tiltAngle);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, 1 - frame / 220);
+      if (p.shape === 'rect') {
+        ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+      } else {
+        ctx.beginPath(); ctx.arc(0, 0, p.r / 2, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 240) requestAnimationFrame(draw);
+    else canvas.remove();
+  }
+  draw();
+}
+
+// ══════════════════════════════════════════
+//  PIPELINE PAGES
+// ══════════════════════════════════════════
+function loadPipelinePage(status, containerId) {
+  const list = allProspects.filter(p => p.status === status);
+  const el = document.getElementById(containerId);
+  const icons = {post_rdv:'🤝', site_delivered:'🚀', maintenance:'🔧'};
+  const emptyMsg = {post_rdv:'Aucun client en cours de création', site_delivered:'Aucun site livré', maintenance:'Aucun client en maintenance'};
+  if (!list.length) { el.innerHTML = `<div class="empty"><div class="icon">${icons[status]||'📋'}</div><p>${emptyMsg[status]||'Aucun'}</p></div>`; return; }
+  el.innerHTML = list.map(p => `
+    <div class="pipeline-card" onclick="openDetail('${p.id}')">
+      <div style="flex:1">
+        <div class="pipeline-card__name">${p.business_name}</div>
+        <div class="pipeline-card__detail">${[p.city, p.sector, p.phone].filter(Boolean).join(' · ')}</div>
+        ${p.delivered_url ? `<div class="pipeline-card__url">🌐 <a href="${p.delivered_url}" target="_blank" onclick="event.stopPropagation()" style="color:#34D399">${p.delivered_url.replace(/^https?:\/\//,'')}</a></div>` : ''}
+        ${p.notes ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem">${p.notes}</div>` : ''}
+      </div>
+      ${statusBadge(p.status)}
+    </div>
+  `).join('');
+}
+
+function renderPipelineSection(p) {
+  const section = document.getElementById('pipelineSection');
+  const btns = document.getElementById('pipelineBtns');
+  const urlGroup = document.getElementById('deliveredUrlGroup');
+  const nextStages = {
+    meeting_booked: [{status:'post_rdv', label:'🤝 Passer en "Après RDV"', cls:'btn-amber'}],
+    post_rdv: [{status:'site_delivered', label:'🚀 Marquer le site comme livré', cls:'btn-green'}],
+    site_delivered: [{status:'maintenance', label:'🔧 Passer en maintenance récurrente', cls:'btn-purple'}],
+    maintenance: []
+  };
+  const stages = nextStages[p.status];
+  if (!stages || stages.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  urlGroup.style.display = p.status === 'post_rdv' ? 'block' : 'none';
+  if (p.status === 'post_rdv') document.getElementById('deliveredUrlInput').value = p.delivered_url || '';
+  btns.innerHTML = stages.map(s =>
+    `<button class="stage-btn ${s.cls}" style="background:var(--surface2);color:var(--text)" onclick="moveToPipeline('${s.status}')">${s.label}</button>`
+  ).join('');
+}
+
+async function overrideStatus(newStatus) {
+  if (!newStatus) return;
+  document.getElementById('statusOverrideSelect').value = '';
+  const payload = { status: newStatus, updated_at: new Date().toISOString() };
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  } else {
+    const p = allProspects.find(x => x.id === currentProspectId);
+    if (p) Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  toast('Statut mis à jour ✓', 'success');
+  await loadAll();
+  await openDetail(currentProspectId);
+}
+
+async function moveToPipeline(newStatus) {
+  const urlInput = document.getElementById('deliveredUrlInput').value.trim();
+  const payload = { status: newStatus, updated_at: new Date().toISOString() };
+  if (newStatus === 'site_delivered' && urlInput) payload.delivered_url = urlInput;
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  } else {
+    const p = allProspects.find(x => x.id === currentProspectId);
+    if (p) Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  const labels = { post_rdv:'🤝 Passé en "Après RDV"', site_delivered:'🚀 Site livré !', maintenance:'🔧 Passé en maintenance' };
+  toast(labels[newStatus] || 'Statut mis à jour', 'success');
+  if (newStatus === 'site_delivered') launchConfetti();
+  await loadAll();
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (p) { renderPipelineSection(p); }
+}
+
+// ══════════════════════════════════════════
+//  SEED PROSPECTS JODOIGNE
+// ══════════════════════════════════════════
+const JODOIGNE_PROSPECTS = [
+  {business_name:'Deroux J-M Srl',sector:'Plomberie',city:'Jodoigne',phone:'0476 475 314',has_website:false,notes:'Plomberie & sanitaires'},
+  {business_name:'Gauniaux Plomberie',sector:'Plomberie',city:'Jodoigne',phone:'0475 724 150',has_website:false},
+  {business_name:'Claes F',sector:'Électricité',city:'Jodoigne',phone:'010 81 07 44',has_website:false},
+  {business_name:'Decroupette H',sector:'Électricité',city:'Jodoigne',phone:'0474 235 900',has_website:false},
+  {business_name:'Degreve J',sector:'Électricité',city:'Jodoigne',phone:'0497 297 807',has_website:false},
+  {business_name:'Electri Partners',sector:'Électricité',city:'Jodoigne',phone:'0479 500 180',has_website:false},
+  {business_name:'Electricité Cools Srl',sector:'Électricité',city:'Jodoigne',phone:'0477 724 620',has_website:false},
+  {business_name:'Jovalec',sector:'Électricité',city:'Jodoigne',phone:'0496 854 999',has_website:false},
+  {business_name:'Pillens D',sector:'Électricité',city:'Jodoigne',phone:'0477 269 727',has_website:false},
+  {business_name:'Bodenhorst & Fils',sector:'Menuiserie',city:'Jodoigne',phone:'0474 334 345',has_website:false},
+  {business_name:'Bois de St-Jean',sector:'Menuiserie',city:'Jodoigne',phone:'0475 977 822',has_website:false},
+  {business_name:'FG Concept',sector:'Menuiserie',city:'Jodoigne',phone:'0475 628 450',has_website:false},
+  {business_name:'M.G.P.C',sector:'Menuiserie',city:'Jodoigne',phone:'0478 562 583',has_website:false},
+  {business_name:'A Touch of Wood',sector:'Menuiserie',city:'Jodoigne',phone:'010 88 14 29',has_website:false},
+  {business_name:'BE-SF Srl',sector:'Peinture',city:'Jodoigne',phone:'0471 585 454',has_website:false},
+  {business_name:'LBS Peinture',sector:'Peinture',city:'Jodoigne',phone:'0475 396 948',has_website:false},
+  {business_name:'Mil Décors',sector:'Peinture',city:'Jodoigne',phone:'0477 440 074',has_website:false},
+  {business_name:'Da Capo Toitures',sector:'Toiture',city:'Jodoigne',phone:'0476 458 202',has_website:false},
+  {business_name:'SOS Maison',sector:'Toiture',city:'Jodoigne',phone:'0471 101 102',has_website:false},
+  {business_name:'Toiture Mexence',sector:'Toiture',city:'Jodoigne',phone:'0471 332 269',has_website:false},
+  {business_name:'Delloye M',sector:'Maçonnerie',city:'Jodoigne',phone:'010 81 33 20',has_website:false},
+  {business_name:'Docq E',sector:'Maçonnerie',city:'Jodoigne',phone:'0477 174 831',has_website:false},
+  {business_name:'Ecochauffe',sector:'Chauffage',city:'Jodoigne',phone:'010 68 17 53',has_website:false},
+  {business_name:'LR Chauffage-Sanitaire',sector:'Chauffage',city:'Jodoigne',phone:'0479 620 816',has_website:false},
+  {business_name:'Taillet & Fils',sector:'Chauffage',city:'Jodoigne',phone:'010 88 86 46',has_website:false},
+  {business_name:'Domus Concept',sector:'Entrepreneur général',city:'Jodoigne',phone:'010 81 20 54',has_website:false},
+  {business_name:'TNC Construct',sector:'Entrepreneur général',city:'Jodoigne',phone:'0496 261 840',has_website:false},
+  {business_name:'1Barber',sector:'Coiffure',city:'Jodoigne',phone:'010 86 05 01',has_website:false},
+  {business_name:'Art au Style',sector:'Coiffure',city:'Jodoigne',phone:'0498 234 167',has_website:false},
+  {business_name:'Coiffure Nelly',sector:'Coiffure',city:'Jodoigne',phone:'010 81 24 29',has_website:false},
+  {business_name:'Milles Boucles',sector:'Coiffure',city:'Jodoigne',phone:'010 81 29 68',has_website:false},
+  {business_name:'Nouvel Air Coiffure',sector:'Coiffure',city:'Jodoigne',phone:'010 81 11 55',has_website:false},
+  {business_name:"Sup'er Coiffe",sector:'Coiffure',city:'Jodoigne',phone:'010 81 09 17',has_website:false},
+  {business_name:'Arthmobil',sector:'Garage / Auto',city:'Jodoigne',phone:'010 81 30 77',has_website:false},
+  {business_name:'Francis Garage',sector:'Garage / Auto',city:'Jodoigne',phone:'010 84 46 38',has_website:false},
+  {business_name:'OM Cars',sector:'Garage / Auto',city:'Jodoigne',phone:'0489 059 955',has_website:false},
+  {business_name:'Berwart Boucherie',sector:'Boucherie',city:'Jodoigne',phone:'010 81 03 17',has_website:false},
+  {business_name:'Pierre Boucherie',sector:'Boucherie',city:'Jodoigne',phone:'010 81 13 44',has_website:false},
+  {business_name:"L'Atelier du Pain",sector:'Boulangerie',city:'Jodoigne',phone:'010 84 06 54',has_website:false},
+  {business_name:'Bosquet Boulangerie',sector:'Boulangerie',city:'Jodoigne',phone:'010 81 09 73',has_website:false},
+];
+
+async function seedJodoigne() {
+  if (!confirm(`Importer ${JODOIGNE_PROSPECTS.length} artisans/commerçants de Jodoigne ?`)) return;
+  const existingNames = allProspects.map(p => p.business_name.toLowerCase());
+  const toInsert = JODOIGNE_PROSPECTS.filter(p => !existingNames.includes(p.business_name.toLowerCase()));
+  if (!toInsert.length) { toast('Tous ces prospects sont déjà dans le CRM', ''); return; }
+  const base = { status: 'to_call', created_by: currentUser, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+  if (sb) {
+    const rows = toInsert.map(p => ({ ...base, ...p }));
+    const { error } = await sb.from('prospects').insert(rows);
+    if (error) { toast('Erreur import: ' + error.message, 'error'); return; }
+  } else {
+    toInsert.forEach(p => {
+      allProspects.unshift({ id: crypto.randomUUID(), calls: [], ...base, ...p });
+    });
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  toast(`✅ ${toInsert.length} prospects importés !`, 'success');
+  await loadAll();
+}
+
+// ══════════════════════════════════════════
+//  DARK MODE
+// ══════════════════════════════════════════
+function toggleDark() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('darkMode', isDark ? '1' : '0');
+  const btn = document.getElementById('darkModeBtn');
+  if (btn) btn.textContent = isDark ? '☀️ Mode clair' : '🌙 Mode sombre';
+}
+
+function initDarkMode() {
+  if (localStorage.getItem('darkMode') === '1') {
+    document.body.classList.add('dark');
+    const btn = document.getElementById('darkModeBtn');
+    if (btn) btn.textContent = '☀️ Mode clair';
+  }
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION HELPER
+// ══════════════════════════════════════════
+function navigateTo(page) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const btn = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (btn) btn.classList.add('active');
+  const pageEl = document.getElementById('page-' + page);
+  if (!pageEl) return;
+  pageEl.classList.add('active');
+  if (page === 'callbacks') loadCallbacks();
+  if (page === 'history') loadHistory();
+  if (page === 'calendar') { calYear = new Date().getFullYear(); calMonth = new Date().getMonth(); renderCalendar(); }
+  if (page === 'kpi') loadKPI();
+  if (page === 'post-rdv') loadPipelinePage('post_rdv', 'postRdvList');
+  if (page === 'sites') loadPipelinePage('site_delivered', 'sitesList');
+  if (page === 'maintenance') loadPipelinePage('maintenance', 'maintenanceList');
+  if (page === 'archives') loadArchives();
+}
+
+// ══════════════════════════════════════════
+//  COMMAND PALETTE
+// ══════════════════════════════════════════
+let _cmdOpen = false;
+let _cmdActions = [];
+let _cmdSelected = -1;
+
+function toggleCmd() { _cmdOpen ? closeCmd() : openCmd(); }
+
+function openCmd() {
+  _cmdOpen = true;
+  document.getElementById('cmdPalette').classList.add('open');
+  const input = document.getElementById('cmdInput');
+  input.value = '';
+  _cmdSelected = -1;
+  renderCmdResults('');
+  setTimeout(() => input.focus(), 40);
+}
+
+function closeCmd() {
+  _cmdOpen = false;
+  document.getElementById('cmdPalette').classList.remove('open');
+}
+
+function onCmdInput(val) {
+  _cmdSelected = -1;
+  renderCmdResults(val);
+}
+
+function renderCmdResults(query) {
+  _cmdActions = [];
+  const q = query.toLowerCase().trim();
+  const el = document.getElementById('cmdResults');
+
+  const staticActions = [
+    { icon:'➕', label:'Nouveau prospect', hint:'⌘N', action: () => openAddProspect() },
+    { icon:'▶', label:'Appel suivant', hint:'', action: () => openNextProspect() },
+    { icon:'📊', label:'Dashboard', action: () => navigateTo('dashboard') },
+    { icon:'📈', label:'KPI & Performance', action: () => navigateTo('kpi') },
+    { icon:'📅', label:'Calendrier', action: () => navigateTo('calendar') },
+    { icon:'🏢', label:'Prospects', action: () => navigateTo('prospects') },
+    { icon:'⏰', label:'À rappeler', action: () => navigateTo('callbacks') },
+    { icon:'📋', label:'Historique des appels', action: () => navigateTo('history') },
+    { icon:'🌙', label:'Basculer mode sombre / clair', action: () => toggleDark() },
+  ];
+
+  const filtered = q ? staticActions.filter(a => a.label.toLowerCase().includes(q)) : staticActions;
+  const prospects = q
+    ? allProspects.filter(p =>
+        (p.business_name||'').toLowerCase().includes(q) ||
+        (p.phone||'').replace(/\s/g,'').includes(q.replace(/\s/g,'')) ||
+        (p.city||'').toLowerCase().includes(q) ||
+        (p.sector||'').toLowerCase().includes(q)
+      ).slice(0, 6)
+    : [];
+
+  let html = '';
+  let idx = 0;
+
+  if (filtered.length) {
+    if (!q) html += '<div class="cmd-section">Actions &amp; Navigation</div>';
+    filtered.forEach(a => {
+      _cmdActions.push(a);
+      html += `<div class="cmd-result" data-cmd="${idx++}">
+        <span class="cmd-icon">${a.icon}</span>
+        <span class="cmd-label">${a.label}</span>
+        ${a.hint ? `<span class="cmd-hint">${a.hint}</span>` : ''}
+      </div>`;
+    });
+  }
+
+  if (prospects.length) {
+    html += '<div class="cmd-section">Prospects</div>';
+    prospects.forEach(p => {
+      _cmdActions.push({ action: () => openDetail(p.id) });
+      html += `<div class="cmd-result" data-cmd="${idx++}">
+        <span class="cmd-icon">🏢</span>
+        <div style="flex:1;min-width:0">
+          <div class="cmd-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.business_name}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted)">${[p.city,p.sector].filter(Boolean).join(' · ')}</div>
+        </div>
+        ${statusBadge(p.status)}
+      </div>`;
+    });
+  }
+
+  if (!filtered.length && !prospects.length) {
+    html = `<div class="cmd-empty">Aucun résultat pour "${query}"</div>`;
+  }
+
+  el.innerHTML = html;
+  el.querySelectorAll('.cmd-result').forEach(item => {
+    item.addEventListener('click', () => {
+      const i = parseInt(item.dataset.cmd);
+      closeCmd();
+      setTimeout(() => _cmdActions[i]?.action(), 50);
+    });
+  });
+}
+
+function moveCmdSel(dir) {
+  const results = document.querySelectorAll('#cmdResults .cmd-result');
+  if (!results.length) return;
+  results[_cmdSelected]?.classList.remove('selected');
+  _cmdSelected = Math.max(-1, Math.min(results.length - 1, _cmdSelected + dir));
+  if (_cmdSelected >= 0) {
+    results[_cmdSelected].classList.add('selected');
+    results[_cmdSelected].scrollIntoView({ block:'nearest' });
+  }
+}
+
+// ══════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════
+function initKeyboard() {
+  document.addEventListener('keydown', function(e) {
+    const inInput = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName);
+
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      toggleCmd();
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'n' && !inInput) {
+      e.preventDefault();
+      openAddProspect();
+      return;
+    }
+    if (e.key === 'Escape') {
+      if (_cmdOpen) { closeCmd(); return; }
+      document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+      return;
+    }
+    if (_cmdOpen) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); moveCmdSel(1); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); moveCmdSel(-1); }
+      if (e.key === 'Enter' && _cmdSelected >= 0) {
+        e.preventDefault();
+        document.querySelectorAll('#cmdResults .cmd-result')[_cmdSelected]?.click();
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+//  SVG CHARTS
+// ══════════════════════════════════════════
+function renderBarChart(containerId, data) {
+  const container = document.getElementById(containerId);
+  if (!container || !data.length) return;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const h = 76, barW = 22, gap = 8;
+  const vbW = data.length * (barW + gap);
+  let rects = '', lbls = '', vals = '';
+  data.forEach((d, i) => {
+    const bh = Math.max(d.value > 0 ? 5 : 2, (d.value / max) * h);
+    const x = i * (barW + gap), y = h - bh;
+    const fill = d.value === 0 ? 'var(--surface2)' : (d.color || 'var(--accent)');
+    rects += `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="4" fill="${fill}"/>`;
+    lbls += `<text x="${x+barW/2}" y="${h+16}" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="system-ui">${d.label}</text>`;
+    if (d.value > 0) vals += `<text x="${x+barW/2}" y="${y-5}" text-anchor="middle" font-size="9" fill="var(--text-soft)" font-family="system-ui">${d.value}</text>`;
+  });
+  container.innerHTML = `<svg width="100%" height="${h+22}" viewBox="0 0 ${vbW} ${h+22}" preserveAspectRatio="xMinYMin meet" style="overflow:visible">${rects}${lbls}${vals}</svg>`;
+}
+
+function renderSparkline(containerId, values, color) {
+  const container = document.getElementById(containerId);
+  if (!container || values.length < 2) { if (container) container.innerHTML=''; return; }
+  const max = Math.max(...values, 1);
+  const w = 70, h = 28;
+  const pts = values.map((v, i) => `${i/(values.length-1)*w},${h-(v/max)*h}`).join(' ');
+  const fillPts = `0,${h} ${pts} ${w},${h}`;
+  const c = color || 'var(--accent)';
+  const uid = containerId.replace(/\W/g,'');
+  container.innerHTML = `<svg width="${w}" height="${h}" style="overflow:visible;display:block">
+    <defs><linearGradient id="sg${uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${c}" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="${c}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <polygon points="${fillPts}" fill="url(#sg${uid})"/>
+    <polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// ══════════════════════════════════════════
+//  KPI PAGE
+// ══════════════════════════════════════════
+let _kpiPeriod = 'today';
+
+function setKPIPeriod(period, btn) {
+  _kpiPeriod = period;
+  document.querySelectorAll('.kpi-period-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  loadKPI();
+}
+
+async function loadKPI() {
+  const el = document.getElementById('kpiContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+  let allCalls = [];
+  if (sb) {
+    const { data } = await sb.from('calls').select('*, prospects(business_name,city,sector)').order('called_at', { ascending: false });
+    allCalls = data || [];
+  } else {
+    allProspects.forEach(p => {
+      if (p.calls) p.calls.forEach(c => allCalls.push({ ...c, prospects:{ business_name:p.business_name, city:p.city, sector:p.sector } }));
+    });
+    allCalls.sort((a,b) => new Date(b.called_at)-new Date(a.called_at));
+  }
+
+  const getStart = (p) => {
+    const d = new Date();
+    if (p === 'today') { d.setHours(0,0,0,0); return d; }
+    if (p === 'week') { const dow=d.getDay(); d.setDate(d.getDate()-(dow===0?6:dow-1)); d.setHours(0,0,0,0); return d; }
+    if (p === 'month') { d.setDate(1); d.setHours(0,0,0,0); return d; }
+    if (p === 'year') { d.setMonth(0,1); d.setHours(0,0,0,0); return d; }
+    return d;
+  };
+
+  const start = getStart(_kpiPeriod);
+  const filtered = allCalls.filter(c => new Date(c.called_at) >= start);
+
+  const byS = (s) => filtered.filter(c => c.status === s).length;
+  const byU = (u) => filtered.filter(c => c.called_by === u);
+
+  const total = filtered.length;
+  const meetings = byS('meeting_booked');
+  const interested = byS('interested');
+  const callbacks = byS('callback');
+  const noAnswer = byS('no_answer');
+  const voicemail = byS('voicemail');
+  const notInterested = byS('not_interested');
+  const rdvRate = total > 0 ? Math.round(meetings/total*100) : 0;
+  const intRate = total > 0 ? Math.round((interested+meetings)/total*100) : 0;
+
+  // Chart data — last N days
+  const nDays = _kpiPeriod === 'year' ? 12 : _kpiPeriod === 'month' ? 30 : 14;
+  const isWeeks = _kpiPeriod === 'year';
+  const chartData = [];
+  for (let i = nDays-1; i >= 0; i--) {
+    if (isWeeks) {
+      const d = new Date(); d.setDate(d.getDate()-i*7); d.setHours(0,0,0,0);
+      const de = new Date(d); de.setDate(de.getDate()+6); de.setHours(23,59,59,999);
+      chartData.push({ label:'S'+(nDays-i), value: allCalls.filter(c=>{ const cd=new Date(c.called_at); return cd>=d&&cd<=de; }).length });
+    } else {
+      const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+      const de = new Date(d); de.setHours(23,59,59,999);
+      const lbl = ['D','L','M','Me','J','V','S'][d.getDay()];
+      chartData.push({ label: i===0?'Auj':lbl, value: allCalls.filter(c=>{ const cd=new Date(c.called_at); return cd>=d&&cd<=de; }).length });
+    }
+  }
+
+  const maxF = Math.max(total, 1);
+  const funnelData = [
+    { label:'Appels loggués', value:total, color:'var(--accent)' },
+    { label:'Intéressés + RDV', value:interested+meetings, color:'#2563EB' },
+    { label:'RDV décroché', value:meetings, color:'#16A34A' },
+  ];
+
+  const statusData = [
+    { label:'Pas répondu', value:noAnswer, color:'#D97706' },
+    { label:'Messagerie', value:voicemail, color:'#6B7280' },
+    { label:'À rappeler', value:callbacks, color:'#7C3AED' },
+    { label:'Pas intéressé', value:notInterested, color:'#DC2626' },
+    { label:'Intéressé', value:interested, color:'#2563EB' },
+    { label:'RDV décroché', value:meetings, color:'#16A34A' },
+  ].filter(d => d.value > 0).sort((a,b) => b.value-a.value);
+
+  el.innerHTML = `
+    <div class="stats-row" style="margin-bottom:1.2rem">
+      <div class="stat-card accent">
+        <div class="stat-card__label">Appels loggués</div>
+        <div class="stat-card__value">${total}</div>
+        <div class="stat-card__sub">${byU('Guillaume').length} Guillaume · ${byU('Adrien').length} Adrien</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-card__label">RDV décrochés</div>
+        <div class="stat-card__value">${meetings}</div>
+        <div class="stat-card__sub">Taux : ${rdvRate}%</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-card__label">Intéressés</div>
+        <div class="stat-card__value">${interested}</div>
+        <div class="stat-card__sub">Taux : ${intRate}%</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-card__label">À rappeler</div>
+        <div class="stat-card__value">${callbacks}</div>
+        <div class="stat-card__sub">${noAnswer} sans réponse · ${voicemail} messagerie</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1.2rem;margin-bottom:1.2rem">
+      <div class="card">
+        <div class="card-title">📊 Activité — appels par ${isWeeks?'semaine':'jour'}</div>
+        <div id="kpiBarChart" style="margin-top:0.5rem;overflow:hidden"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔄 Funnel de conversion</div>
+        <div id="kpiFunnel" style="margin-top:0.5rem">${funnelData.map((s,i)=>{
+          const w = maxF>0?Math.max(10,Math.round(s.value/maxF*100)):10;
+          const conv = i>0&&funnelData[i-1].value>0?Math.round(s.value/funnelData[i-1].value*100):null;
+          return `<div style="margin-bottom:0.9rem">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.3rem">
+              <span style="font-size:0.8rem;color:var(--text-soft)">${s.label}</span>
+              <span style="font-size:0.92rem;font-weight:700;color:var(--text)">${s.value}${conv!==null?` <span style="font-size:0.7rem;color:${s.color}">(${conv}%)</span>`:''}
+              </span>
+            </div>
+            <div style="height:20px;background:var(--surface2);border-radius:5px;overflow:hidden">
+              <div style="height:100%;width:${w}%;background:${s.color};border-radius:5px"></div>
+            </div>
+          </div>`;
+        }).join('')}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
+      <div class="card">
+        <div class="card-title">👤 Par commercial</div>
+        <div style="margin-top:0.5rem">${['Guillaume','Adrien'].map(u=>{
+          const uc = byU(u);
+          const un = uc.length;
+          const um = uc.filter(c=>c.status==='meeting_booked').length;
+          const ui = uc.filter(c=>c.status==='interested').length;
+          const ur = un>0?Math.round(um/un*100):0;
+          const pct = Math.min(100, dailyGoal>0?Math.round(un/dailyGoal*100):0);
+          return `<div style="margin-bottom:1.1rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem">
+              <span style="font-size:0.88rem;font-weight:600">👤 ${u}</span>
+              <span style="font-size:0.75rem;color:var(--text-muted)">${un} appels · <span style="color:var(--green)">${um} RDV (${ur}%)</span> · ${ui} intéressés</span>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+            <div style="font-size:0.68rem;color:var(--text-muted);margin-top:0.2rem">${pct}% vers l'objectif (${dailyGoal} appels)</div>
+          </div>`;
+        }).join('')}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Répartition des résultats</div>
+        <div style="margin-top:0.5rem">${statusData.length?statusData.map(d=>`
+          <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:0.55rem">
+            <div style="width:8px;height:8px;border-radius:50%;background:${d.color};flex-shrink:0"></div>
+            <div style="flex:1;font-size:0.82rem;color:var(--text-soft)">${d.label}</div>
+            <div style="font-size:0.88rem;font-weight:600;min-width:24px;text-align:right">${d.value}</div>
+            <div style="width:80px;background:${d.color}22;border-radius:99px;height:6px;overflow:hidden">
+              <div style="height:100%;border-radius:99px;background:${d.color};width:${total>0?Math.round(d.value/total*100):0}%"></div>
+            </div>
+            <div style="font-size:0.7rem;color:var(--text-muted);width:26px;text-align:right">${total>0?Math.round(d.value/total*100):0}%</div>
+          </div>`).join(''):'<div class="empty" style="padding:2rem"><p>Aucun appel sur cette période</p></div>'}</div>
+      </div>
+    </div>`;
+
+  renderBarChart('kpiBarChart', chartData);
+}
+
+// ══════════════════════════════════════════
+//  INIT ON LOAD
+// ══════════════════════════════════════════
+window.addEventListener('load', () => {
+  initDarkMode();
+  initKeyboard();
+  if (sessionStorage.getItem('crmAuth') === '1') {
+    document.getElementById('password-screen').style.display = 'none';
+    const saved = localStorage.getItem('crmUser');
+    if (saved) { selectUser(saved); return; }
+    document.getElementById('setup').style.display = 'flex';
+  }
+  // sinon on reste sur l'écran mot de passe
+  setTimeout(() => document.getElementById('pw-input')?.focus(), 100);
+});
+</script>
+</body>
+</html>
