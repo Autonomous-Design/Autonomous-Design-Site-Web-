@@ -225,9 +225,8 @@
     .prob-item.pi-active { opacity: 1; }
     .prob-item.pi-active::before { transform: scaleY(1); }
     .prob-item:not(.pi-active):hover { opacity: 1; }
-    .prob-item:not(.pi-active):hover .pi-text { color: #000; font-weight: 700; }
-    .prob-item:not(.pi-active):hover .pi-num { opacity: 1; color: var(--blue); }
-    .prob-item:not(.pi-active):hover .pi-icon { opacity: 1; }
+    .prob-item:not(.pi-active):hover .pi-text { color: var(--ink); font-weight: 600; transform: translateX(5px); }
+    .prob-item:not(.pi-active):hover .pi-num { opacity: 1; font-size: 26px; }
 
     .pi-num {
       font-family: var(--serif); font-size: 20px; color: var(--blue);
@@ -235,8 +234,6 @@
       transition: font-size 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.35s, color 0.35s;
     }
     .prob-item.pi-active .pi-num { font-size: 26px; opacity: 1; }
-    .pi-icon { font-size: 17px; flex-shrink: 0; opacity: 0.35; transition: opacity 0.35s, transform 0.35s cubic-bezier(0.22,1,0.36,1); }
-    .prob-item.pi-active .pi-icon { opacity: 1; transform: scale(1.08); }
     .pi-text {
       font-size: 15px; font-weight: 500; color: var(--muted); line-height: 1.3;
       transition: color 0.35s cubic-bezier(0.22,1,0.36,1), font-weight 0.2s, transform 0.35s cubic-bezier(0.22,1,0.36,1);
@@ -890,27 +887,22 @@
       <div class="prob-list" id="probList">
         <div class="prob-item pi-active" data-index="0" role="button" tabindex="0" aria-pressed="true">
           <span class="pi-num">01</span>
-          <span class="pi-icon">🕰️</span>
           <span class="pi-text">Mon site est vieillissant</span>
         </div>
         <div class="prob-item" data-index="1" role="button" tabindex="0" aria-pressed="false">
           <span class="pi-num">02</span>
-          <span class="pi-icon">⏳</span>
           <span class="pi-text">Je n'ai pas le temps de gérer ça</span>
         </div>
         <div class="prob-item" data-index="2" role="button" tabindex="0" aria-pressed="false">
           <span class="pi-num">03</span>
-          <span class="pi-icon">⚡</span>
           <span class="pi-text">Mon site est lent ou peu fiable</span>
         </div>
         <div class="prob-item" data-index="3" role="button" tabindex="0" aria-pressed="false">
           <span class="pi-num">04</span>
-          <span class="pi-icon">🔍</span>
           <span class="pi-text">Je n'apparais pas sur Google</span>
         </div>
         <div class="prob-item" data-index="4" role="button" tabindex="0" aria-pressed="false">
           <span class="pi-num">05</span>
-          <span class="pi-icon">🔗</span>
           <span class="pi-text">Je jongle avec trop d'interlocuteurs</span>
         </div>
       </div>
