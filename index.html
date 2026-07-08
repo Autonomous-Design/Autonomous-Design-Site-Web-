@@ -527,6 +527,9 @@
     .plan-cta-blue { background: var(--blue); color: #fff; }
     .plan-cta-blue:hover { background: var(--blue-d); transform: translateY(-1px); }
     .plan-note { font-size: 12px; color: var(--muted); text-align: center; }
+    .offers-type { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--blue); margin-bottom: 28px; margin-top: 64px; display: flex; align-items: center; gap: 16px; }
+    .offers-type:first-of-type { margin-top: 0; }
+    .offers-type::after { content: ''; flex: 1; height: 1px; background: var(--light-2); }
 
     /* ── WHY ── */
     .why { background: var(--white); padding: 128px 72px; }
@@ -1111,6 +1114,59 @@
     <h2>Simple, transparent,<br><em>sans surprise.</em></h2>
     <p class="body-l">Choisissez le niveau d'accompagnement qui correspond à votre situation. Tous les tarifs sont HTVA.</p>
   </div>
+  <div class="offers-type r">Création de site · prix unique</div>
+  <div class="plans-grid">
+    <div class="plan r">
+      <span class="plan-badge">Classique</span>
+      <div class="plan-name">Site Classique</div>
+      <div class="plan-desc">Un site professionnel sur mesure, livré rapidement. La solution idéale pour démarrer.</div>
+      <div class="plan-price">700€</div>
+      <div class="plan-recur">· prix unique, sans abonnement</div>
+      <ul class="plan-list">
+        <li>Site vitrine jusqu'à 5 pages</li>
+        <li>Design responsive sur mesure</li>
+        <li>SEO de base inclus</li>
+        <li>Formulaire de contact</li>
+        <li>Livraison rapide</li>
+        <li>3 à 4× moins cher que le marché</li>
+      </ul>
+      <a href="#contact" class="plan-cta plan-cta-outline">Demander un devis</a>
+    </div>
+    <div class="plan pop r d1">
+      <span class="plan-badge">✦ Refonte</span>
+      <div class="plan-name">Refonte de site</div>
+      <div class="plan-desc">Modernisez votre site existant. Nouveau design, meilleures performances, même contenu.</div>
+      <div class="plan-price">350€</div>
+      <div class="plan-recur">· prix unique, sans abonnement</div>
+      <ul class="plan-list">
+        <li>Redesign complet</li>
+        <li>Contenu existant repris</li>
+        <li>Performance améliorée</li>
+        <li>SEO préservé et renforcé</li>
+        <li>Migration incluse</li>
+        <li>Livraison rapide</li>
+      </ul>
+      <a href="#contact" class="plan-cta plan-cta-blue">Demander un devis</a>
+    </div>
+    <div class="plan r d2">
+      <span class="plan-badge">Sur mesure</span>
+      <div class="plan-name">Site Premium</div>
+      <div class="plan-desc">Fonctionnalités avancées : click & collect, paiement en ligne, réservation, espace client…</div>
+      <div class="plan-price" style="font-size:36px;line-height:1.2;">Sur devis</div>
+      <div class="plan-recur">· adapté à vos besoins</div>
+      <ul class="plan-list">
+        <li>Click & collect</li>
+        <li>Paiement en ligne</li>
+        <li>Réservation en ligne</li>
+        <li>Espace client</li>
+        <li>Intégrations sur mesure</li>
+        <li>Accompagnement dédié</li>
+      </ul>
+      <a href="#contact" class="plan-cta plan-cta-outline">Nous contacter</a>
+    </div>
+  </div>
+
+  <div class="offers-type r">Accompagnement mensuel · abonnement</div>
   <div class="plans-grid">
     <div class="plan r">
       <span class="plan-badge">Starter</span>
@@ -1136,7 +1192,7 @@
       <div class="plan-recur">/mois · tout inclus + modifications</div>
       <ul class="plan-list">
         <li>Tout le plan Starter</li>
-        <li>Modifications de contenu</li>
+        <li>1h de modification de contenu</li>
         <li>Corrections de bugs</li>
         <li>Support email sous 48h</li>
         <li>Rapport trimestriel</li>
@@ -1152,7 +1208,7 @@
       <div class="plan-recur">/mois · présence complète</div>
       <ul class="plan-list">
         <li>Tout le plan Business</li>
-        <li>8 à 10 posts réseaux/mois</li>
+        <li>2 posts réseaux/mois</li>
         <li>Gestion Google Business</li>
         <li>SEO & référencement</li>
         <li>Rapport de performance mensuel</li>
@@ -1161,7 +1217,7 @@
       <a href="#contact" class="plan-cta plan-cta-outline">Nous contacter</a>
     </div>
   </div>
-  <p class="plan-note r">Création de site <strong style="color:var(--blue)">3 à 4× moins cher que le marché</strong> · <a href="#contact" style="color:var(--blue);text-decoration:none;">Demander un devis personnalisé →</a></p>
+  <p class="plan-note r">Tarifs <strong style="color:var(--blue)">3 à 4× moins chers que le marché</strong> · <a href="#contact" style="color:var(--blue);text-decoration:none;">Demander un devis personnalisé →</a></p>
 </section>
 
 <!-- ── 6. POURQUOI NOUS ── -->
@@ -1285,7 +1341,7 @@
           Combien coûtent les formules mensuelles ?
           <span class="faq-arrow" aria-hidden="true">+</span>
         </button>
-        <div class="faq-a">L'hébergement + maintenance de base coûte 35€/mois. La formule complète avec modifications à la demande est à 70€/mois. La Présence Digitale tout inclus (réseaux sociaux, SEO, support prioritaire) est à 220€/mois.</div>
+        <div class="faq-a">La création d'un site classique est à 700€ (prix unique), une refonte à 350€, et les sites premium sur devis. Pour l'accompagnement mensuel : hébergement à 35€/mois, maintenance complète à 70€/mois, présence digitale à 220€/mois.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">
@@ -1337,7 +1393,7 @@
       <div class="contact-detail">
         <span class="c-lbl">Téléphone</span>
         <a class="c-val" href="tel:+32478275793">+32 478 27 57 93</a>
-        <a class="c-val" href="tel:+32484789981" style="margin-top:6px;display:block;font-size:16px;">+32 484 78 99 81</a>
+        <a class="c-val" href="tel:+32484789981" style="margin-top:6px;display:block;">+32 484 78 99 81</a>
       </div>
       <div class="contact-detail">
         <span class="c-lbl">Basés en</span>
