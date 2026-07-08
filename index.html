@@ -1625,7 +1625,15 @@
       active = idx;
       const d = SRV[idx];
 
-      navItems.forEach((el, i) => { el.classList.toggle('sni-on', i === idx); });
+      navItems.forEach((el, i) => {
+        const on = i === idx;
+        el.classList.toggle('sni-on', on);
+        if(typeof gsap !== 'undefined') {
+          gsap.to(el, { opacity: on ? 1 : 0.42, duration: 0.3, ease: 'power2.out', overwrite: true });
+        } else {
+          el.style.opacity = on ? '1' : '0.42';
+        }
+      });
 
       if(typeof gsap === 'undefined') {
         name.textContent = d.name;
