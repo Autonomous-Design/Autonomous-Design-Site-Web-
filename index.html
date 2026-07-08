@@ -1698,133 +1698,111 @@
     if(typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
     gsap.registerPlugin(ScrollTrigger);
 
-    const steps    = gsap.utils.toArray('.proc-step');
-    const fill     = document.getElementById('procFill');
-    const promise  = document.getElementById('procPromise');
-    const N        = steps.length; // 6
-
+    const steps   = gsap.utils.toArray('.proc-step');
+    const fill    = document.getElementById('procFill');
+    const promise = document.getElementById('procPromise');
+    const N       = steps.length;
     if(!steps.length || !fill || !promise) return;
 
-    // ── Initial states ────────────────────────────────────────
-    steps.forEach((step, i) => {
-      const dot  = step.querySelector('.proc-dot');
-      const num  = step.querySelector('.proc-dot-num');
-      const halo = step.querySelector('.proc-halo');
-      const badge = step.querySelector('.proc-badge');
-      const h3   = step.querySelector('h3');
-      const p    = step.querySelector('p');
+    // ── Mobile fallback: tout visible, sans pin ───────────────
+    function showStatic() {
+      steps.forEach(step => {
+        gsap.set(step, { clearProps: 'all' });
+        ['proc-dot','proc-dot-num','proc-halo','proc-badge','h3','p'].forEach(sel => {
+          const el = step.querySelector('.' + sel) || step.querySelector(sel);
+          if(el) gsap.set(el, { clearProps: 'all' });
+        });
+      });
+      gsap.set(fill,    { width: '100%' });
+      gsap.set(promise, { clearProps: 'all' });
+    }
 
-      gsap.set(step,  { opacity: i === 0 ? 0.35 : 0.12 });
-      gsap.set(dot,   { scale: 1, backgroundColor: '#131929', borderColor: 'rgba(255,255,255,0.08)' });
-      gsap.set(num,   { color: 'rgba(255,255,255,0.18)' });
-      gsap.set(halo,  { opacity: 0, boxShadow: 'none', borderColor: 'transparent' });
-      gsap.set(badge, { opacity: 0, y: 14 });
-      gsap.set(h3,    { opacity: 0, y: 14 });
-      gsap.set(p,     { opacity: 0, y: 10 });
-      if(i > 0) gsap.set(step, { filter: 'blur(2px)' });
-      else       gsap.set(step, { filter: 'blur(0px)' });
-    });
-    gsap.set(fill,    { width: '0%' });
-    gsap.set(promise, { opacity: 0, y: 40, filter: 'blur(10px)' });
+    // ── Desktop uniquement ────────────────────────────────────
+    const mm = gsap.matchMedia();
 
-    // ── Main scrubbed timeline ─────────────────────────────────
-    const SEG  = 0.78 / N;   // each step gets this portion of the timeline (0–0.78)
-    const OUTRO = 0.22;       // remaining for breath + quote
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '#process',
-        pin: true,
-        start: 'top top',
-        end: '+=300vh',
-        scrub: 1.5,
-        invalidateOnRefresh: true,
-        anticipatePin: 0,
-      }
+    mm.add('(max-width: 960px)', () => {
+      showStatic();
     });
 
-    steps.forEach((step, i) => {
-      const dot   = step.querySelector('.proc-dot');
-      const num   = step.querySelector('.proc-dot-num');
-      const halo  = step.querySelector('.proc-halo');
-      const burst = step.querySelector('.proc-burst');
-      const badge = step.querySelector('.proc-badge');
-      const h3    = step.querySelector('h3');
-      const p     = step.querySelector('p');
+    mm.add('(min-width: 961px)', () => {
 
-      const t0 = i * SEG;        // step activation start
-      const t1 = (i+1) * SEG;   // next step starts here
+      // Initial states
+      steps.forEach((step, i) => {
+        const dot   = step.querySelector('.proc-dot');
+        const num   = step.querySelector('.proc-dot-num');
+        const halo  = step.querySelector('.proc-halo');
+        const badge = step.querySelector('.proc-badge');
+        const h3    = step.querySelector('h3');
+        const p     = step.querySelector('p');
 
-      // 1. Step appears & unblurs
-      tl.to(step, { opacity: 1, filter: 'blur(0px)', duration: SEG * 0.25, ease: 'none' }, t0);
+        gsap.set(step,  { opacity: i === 0 ? 0.35 : 0.12, filter: i > 0 ? 'blur(2px)' : 'blur(0px)' });
+        gsap.set(dot,   { scale: 1, backgroundColor: '#131929', borderColor: 'rgba(255,255,255,0.08)' });
+        gsap.set(num,   { color: 'rgba(255,255,255,0.18)' });
+        gsap.set(halo,  { opacity: 0, boxShadow: 'none', borderColor: 'transparent' });
+        gsap.set(badge, { opacity: 0, y: 14 });
+        gsap.set(h3,    { opacity: 0, y: 14 });
+        gsap.set(p,     { opacity: 0, y: 10 });
+      });
+      gsap.set(fill,    { width: '0%' });
+      gsap.set(promise, { opacity: 0, y: 40, filter: 'blur(10px)' });
 
-      // 2. Dot activates (scale + color)
-      tl.to(dot, {
-        scale: 1.08,
-        backgroundColor: 'rgba(56,96,244,0.1)',
-        borderColor: 'rgba(56,96,244,0.75)',
-        duration: SEG * 0.2, ease: 'none'
-      }, t0);
+      const SEG = 0.78 / N;
 
-      // 3. Number turns white
-      tl.to(num, { color: '#ffffff', duration: SEG * 0.15 }, t0);
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: '#process',
+          pin: true,
+          start: 'top top',
+          end: '+=300vh',
+          scrub: 1.5,
+          invalidateOnRefresh: true,
+          anticipatePin: 0,
+        }
+      });
 
-      // 4. Halo glows in
-      tl.to(halo, {
-        opacity: 1,
-        borderColor: 'rgba(56,96,244,0.35)',
-        boxShadow: '0 0 18px 6px rgba(56,96,244,0.14), 0 0 36px 12px rgba(56,96,244,0.07)',
-        duration: SEG * 0.28
-      }, t0);
+      steps.forEach((step, i) => {
+        const dot   = step.querySelector('.proc-dot');
+        const num   = step.querySelector('.proc-dot-num');
+        const halo  = step.querySelector('.proc-halo');
+        const burst = step.querySelector('.proc-burst');
+        const badge = step.querySelector('.proc-badge');
+        const h3    = step.querySelector('h3');
+        const p     = step.querySelector('p');
 
-      // 5. Burst (quick flash — short duration for snappy feel)
-      tl.fromTo(burst,
-        { scale: 1,   opacity: 0.9 },
-        { scale: 2.4, opacity: 0,   duration: SEG * 0.18, ease: 'power2.out' },
-        t0
-      );
+        const t0 = i * SEG;
+        const t1 = (i + 1) * SEG;
 
-      // 6. Text stagger-in
-      tl.to(badge, { opacity: 1, y: 0, duration: SEG * 0.22 }, t0 + SEG * 0.18);
-      tl.to(h3,    { opacity: 1, y: 0, duration: SEG * 0.22 }, t0 + SEG * 0.26);
-      tl.to(p,     { opacity: 1, y: 0, duration: SEG * 0.22 }, t0 + SEG * 0.34);
+        tl.to(step, { opacity: 1, filter: 'blur(0px)', duration: SEG * 0.25, ease: 'none' }, t0);
+        tl.to(dot,  { scale: 1.08, backgroundColor: 'rgba(56,96,244,0.1)', borderColor: 'rgba(56,96,244,0.75)', duration: SEG * 0.2, ease: 'none' }, t0);
+        tl.to(num,  { color: '#ffffff', duration: SEG * 0.15 }, t0);
+        tl.to(halo, { opacity: 1, borderColor: 'rgba(56,96,244,0.35)', boxShadow: '0 0 18px 6px rgba(56,96,244,0.14), 0 0 36px 12px rgba(56,96,244,0.07)', duration: SEG * 0.28 }, t0);
+        tl.fromTo(burst, { scale: 1, opacity: 0.9 }, { scale: 2.4, opacity: 0, duration: SEG * 0.18, ease: 'power2.out' }, t0);
+        tl.to(badge, { opacity: 1, y: 0, duration: SEG * 0.22 }, t0 + SEG * 0.18);
+        tl.to(h3,    { opacity: 1, y: 0, duration: SEG * 0.22 }, t0 + SEG * 0.26);
+        tl.to(p,     { opacity: 1, y: 0, duration: SEG * 0.22 }, t0 + SEG * 0.34);
 
-      // 7. Line fills toward next step (or 100% on last)
-      const targetPct = i < N-1 ? `${(i+1)/N*100}%` : '100%';
-      tl.to(fill, { width: targetPct, ease: 'none', duration: SEG * 0.45 }, t0 + SEG * 0.2);
+        const targetPct = i < N - 1 ? `${(i + 1) / N * 100}%` : '100%';
+        tl.to(fill, { width: targetPct, ease: 'none', duration: SEG * 0.45 }, t0 + SEG * 0.2);
 
-      // 8. Transition to "completed" as next step starts (all except last)
-      if(i < N-1) {
-        tl.to(halo,  { opacity: 0, duration: SEG * 0.1 }, t1 - SEG * 0.12);
-        tl.to(dot,   { scale: 1, borderColor: 'rgba(56,96,244,0.3)', backgroundColor: '#131929', duration: SEG * 0.1 }, t1 - SEG * 0.12);
-        tl.to(step,  { opacity: 0.72, duration: SEG * 0.1 }, t1 - SEG * 0.12);
-      }
+        if(i < N - 1) {
+          tl.to(halo, { opacity: 0, duration: SEG * 0.1 }, t1 - SEG * 0.12);
+          tl.to(dot,  { scale: 1, borderColor: 'rgba(56,96,244,0.3)', backgroundColor: '#131929', duration: SEG * 0.1 }, t1 - SEG * 0.12);
+          tl.to(step, { opacity: 0.72, duration: SEG * 0.1 }, t1 - SEG * 0.12);
+        }
+      });
+
+      const allDots = gsap.utils.toArray('.proc-dot');
+      tl.to(allDots, { scale: 1.04, borderColor: 'rgba(56,96,244,0.55)', duration: 0.04, stagger: 0.025, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 0.80);
+      tl.to(promise, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.12, ease: 'none' }, 0.88);
+
+      return () => { tl.kill(); };
     });
-
-    // ── Outro: micro-breath on all dots (tl positions 0.78–0.92)
-    const allDots = gsap.utils.toArray('.proc-dot');
-    tl.to(allDots, {
-      scale: 1.04,
-      borderColor: 'rgba(56,96,244,0.55)',
-      duration: 0.04,
-      stagger: 0.025,
-      yoyo: true, repeat: 1,
-      ease: 'sine.inOut'
-    }, 0.80);
-
-    // ── Quote emerges (tl position 0.88–1.0)
-    tl.to(promise, {
-      opacity: 1, y: 0, filter: 'blur(0px)',
-      duration: 0.12, ease: 'none'
-    }, 0.88);
   }
 
-  // Init only after full page load so ScrollTrigger has correct layout measurements
   function tryInitGSAP() {
     if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
       initProcessGSAP();
-      // Force recalculation after fonts/images settle
-      setTimeout(() => ScrollTrigger.refresh(), 200);
+      setTimeout(() => ScrollTrigger.refresh(), 300);
     } else {
       setTimeout(tryInitGSAP, 80);
     }
