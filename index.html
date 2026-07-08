@@ -1344,7 +1344,8 @@
         <div class="c-val">Belgique</div>
       </div>
     </div>
-    <form id="contactForm" class="contact-form r d1" novalidate>
+    <form id="contactForm" class="contact-form r d1" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+      <p style="display:none"><label>Ne pas remplir : <input name="bot-field"></label></p>
       <div class="fg-row">
         <div class="fg">
           <label for="prenom">Prénom</label>
@@ -2065,70 +2066,53 @@
     document.addEventListener('mouseenter', function(){ dot.style.opacity='1'; ring.style.opacity='1'; });
   })();
 
-  // ── FORMULAIRE CONTACT → envoi immédiat par mailto
+  // ── FORMULAIRE CONTACT → Netlify Forms
   (function(){
     const form   = document.getElementById('contactForm');
     const btn    = document.getElementById('contactSubmit');
     const status = document.getElementById('formStatus');
     if(!form || !btn || !status) return;
 
-    const DEST = 'contact@autonomous-design.com';
-
     form.addEventListener('submit', function(e){
       e.preventDefault();
 
-      // Validation minimale
       const prenom  = form.querySelector('#prenom').value.trim();
-      const nom     = form.querySelector('#nom').value.trim();
       const email   = form.querySelector('#email').value.trim();
-      const tel     = form.querySelector('#tel').value.trim();
-      const service = form.querySelector('#service').value;
-      const message = form.querySelector('#message').value.trim();
 
       if(!prenom || !email){
         showStatus('error', 'Veuillez renseigner au moins votre prénom et votre adresse email.');
         return;
       }
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-        showStatus('error', 'L\'adresse email semble incorrecte.');
+        showStatus('error', "L'adresse email semble incorrecte.");
         return;
       }
 
-      // Composition de l'email
-      const subject = 'Nouvelle demande — Autonomous Design';
-      const body = [
-        'Prénom    : ' + prenom,
-        'Nom       : ' + (nom     || '—'),
-        'Email     : ' + email,
-        'Téléphone : ' + (tel     || '—'),
-        'Service   : ' + (service || '—'),
-        '',
-        'Message :',
-        message || '—',
-        '',
-        '---',
-        'Envoyé depuis le formulaire autonomous-design.com'
-      ].join('\n');
-
-      const mailto = 'mailto:' + DEST
-        + '?subject=' + encodeURIComponent(subject)
-        + '&body='    + encodeURIComponent(body);
-
-      // Ouvre le client mail avec l'email pré-rempli
-      window.location.href = mailto;
-
-      // Feedback visuel
-      showStatus('success', '✓ Votre messagerie s\'ouvre avec l\'email pré-rempli. Cliquez simplement sur Envoyer !');
-      btn.textContent = 'Email préparé ✓';
+      btn.textContent = 'Envoi en cours…';
       btn.disabled = true;
 
-      // Réinitialise le formulaire après 4 secondes
-      setTimeout(function(){
-        form.reset();
-        btn.textContent = 'Envoyer ma demande';
-        btn.disabled = false;
-        status.className = 'form-status';
-      }, 4000);
+      const data = new FormData(form);
+
+      fetch('/', { method: 'POST', headers: { 'Accept': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data).toString() })
+        .then(function(res){
+          if(res.ok){
+            showStatus('success', 'Demande envoyée ! Nous vous répondons sous 24H.');
+            form.reset();
+            btn.textContent = 'Demande envoyée ✓';
+            setTimeout(function(){
+              btn.textContent = 'Envoyer ma demande';
+              btn.disabled = false;
+              status.className = 'form-status';
+            }, 5000);
+          } else {
+            throw new Error('Erreur réseau');
+          }
+        })
+        .catch(function(){
+          showStatus('error', 'Une erreur est survenue. Contactez-nous directement par email.');
+          btn.textContent = 'Envoyer ma demande';
+          btn.disabled = false;
+        });
     });
 
     function showStatus(type, msg){
