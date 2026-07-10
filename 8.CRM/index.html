@@ -158,6 +158,11 @@ tr:hover .table-actions{opacity:1}
 .badge-maintenance{background:rgba(139,92,246,0.12);color:#6D28D9}
 .badge-interested{background:var(--blue-bg);color:#2563EB}
 .badge-has_website{background:rgba(20,184,166,0.12);color:#0F766E}
+.badge-no_result{background:rgba(107,114,128,0.12);color:#374151}
+.badge-verified{background:rgba(16,185,129,0.12);color:#059669}
+.site-quality-bon{background:rgba(16,185,129,0.12);color:#059669;border-radius:99px;padding:0.15rem 0.5rem;font-size:0.7rem;font-weight:600}
+.site-quality-moyen{background:rgba(234,179,8,0.12);color:#B45309;border-radius:99px;padding:0.15rem 0.5rem;font-size:0.7rem;font-weight:600}
+.site-quality-mauvais{background:rgba(239,68,68,0.12);color:#DC2626;border-radius:99px;padding:0.15rem 0.5rem;font-size:0.7rem;font-weight:600}
 
 /* ── PIPELINE CARDS ── */
 .pipeline-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;margin-bottom:0.7rem;transition:border-color 0.2s;cursor:pointer}
@@ -210,6 +215,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.6}
 .call-item{background:var(--surface2);border-radius:8px;padding:0.9rem 1rem;border-left:3px solid var(--border)}
 .call-item.no_answer{border-left-color:var(--amber)}
 .call-item.not_interested{border-left-color:var(--red)}
+.call-item.no_result{border-left-color:#9CA3AF}
 .call-item.callback{border-left-color:var(--purple)}
 .call-item.meeting_booked{border-left-color:var(--green)}
 .call-item.voicemail{border-left-color:#6B7280}
@@ -449,6 +455,7 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
         </button>
       </nav>
       <div class="sidebar__footer">
+        <button onclick="startSprintMode()" style="font-size:0.75rem;color:var(--accent-h);background:none;border:none;cursor:pointer;transition:color 0.2s;margin-bottom:0.3rem;display:block;font-weight:600">⚡ Sprint d'appels</button>
         <button id="darkModeBtn" onclick="toggleDark()">🌙 Mode sombre</button>
         <button onclick="changeUser()" style="font-size:0.75rem;color:var(--text-muted);background:none;border:none;cursor:pointer;transition:color 0.2s">🔄 Changer d'utilisateur</button>
       </div>
@@ -547,6 +554,8 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
           <h1>Prospects</h1>
           <div class="topbar-actions">
             <button class="btn btn-ghost" onclick="openNextProspect()">▶ Appel suivant</button>
+          <button class="btn btn-ghost" onclick="startSprintMode()" style="background:linear-gradient(135deg,rgba(79,70,229,0.15),rgba(124,58,237,0.15));border:1px solid rgba(79,70,229,0.3);color:var(--accent-h)">⚡ Sprint</button>
+          <button class="btn btn-ghost" onclick="startVerifyMode()" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(5,150,105,0.12));border:1px solid rgba(16,185,129,0.3);color:#059669">🔍 Vérification</button>
           <button class="btn btn-primary" onclick="openAddProspect()">+ Ajouter</button>
           </div>
         </div>
@@ -587,6 +596,9 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
           </select>
           <button class="btn btn-ghost btn-sm" onclick="resetFilters()">✕ Reset</button>
           <button class="btn btn-ghost btn-sm" onclick="seedJodoigne()" title="Importer artisans Jodoigne">📥 Jodoigne</button>
+          <button class="btn btn-ghost btn-sm" onclick="seedElecFR()" title="Importer électriciens FR (pages 51-100)">⚡ Électriciens FR</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('csvImportInput').click()">📂 Import CSV</button>
+          <input type="file" id="csvImportInput" accept=".csv" style="display:none" onchange="importCSV(event)"/>
         </div>
         <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.8rem" id="prospectsCount"></div>
         <div class="table-wrap">
@@ -599,14 +611,46 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
                 <th>Téléphone</th>
                 <th>Site web</th>
                 <th>Statut</th>
-                <th>Dernier appel</th>
+                <th>✓</th><th>Tentatives</th><th>Dernier appel</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="prospectsTable">
-              <tr><td colspan="8" class="loading-row"><div class="spinner"></div></td></tr>
+              <tr><td colspan="10" class="loading-row"><div class="spinner"></div></td></tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- ── En attente / Autres statuts ── -->
+        <div style="margin-top:2rem">
+          <div onclick="toggleCollapse('limboSection')" style="display:flex;align-items:center;gap:0.6rem;cursor:pointer;padding:0.7rem 0;border-top:1px solid var(--border);user-select:none">
+            <span style="font-size:1rem">⏳</span>
+            <span style="font-weight:600;font-size:0.9rem">En attente — autres statuts</span>
+            <span id="limboCount" style="background:rgba(217,119,6,0.12);color:var(--amber);font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:99px;min-width:20px;text-align:center">0</span>
+            <span style="margin-left:auto;font-size:0.7rem;color:var(--text-muted)" id="limboChevron">▼</span>
+          </div>
+          <div id="limboSection" style="display:none">
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.8rem">Pas répondu, messagerie, intéressés, RDV, site livré, maintenance — non archivés mais hors file d'appel principale.</div>
+            <div class="table-wrap" id="limboList">
+              <div class="empty" style="padding:1.5rem"><p>Aucun prospect en attente.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Ont un site web ── -->
+        <div style="margin-top:1rem;margin-bottom:3rem">
+          <div onclick="toggleCollapse('hasWebSection')" style="display:flex;align-items:center;gap:0.6rem;cursor:pointer;padding:0.7rem 0;border-top:1px solid var(--border);user-select:none">
+            <span style="font-size:1rem">🌐</span>
+            <span style="font-weight:600;font-size:0.9rem">Ont déjà un site web</span>
+            <span id="hasWebCount" style="background:rgba(37,99,235,0.1);color:var(--blue);font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:99px;min-width:20px;text-align:center">0</span>
+            <span style="margin-left:auto;font-size:0.7rem;color:var(--text-muted)" id="hasWebChevron">▼</span>
+          </div>
+          <div id="hasWebSection" style="display:none">
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.8rem">Prospects avec un site existant. Qualité : <span class="site-quality-bon">bon</span> <span class="site-quality-moyen">moyen</span> <span class="site-quality-mauvais">mauvais</span>. À démarcher plus tard pour une refonte.</div>
+            <div id="hasWebList">
+              <div class="empty" style="padding:1.5rem"><p>Aucun prospect avec site web pour l'instant.</p></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -692,16 +736,30 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
           </div>
           <div class="card">
             <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-              <span>🌐 Déjà un site web</span>
-              <span id="archivesHasWebCount" style="font-size:0.72rem;color:var(--text-muted)"></span>
+              <span>🤷 Abouti à rien</span>
+              <span id="archivesNoResultCount" style="font-size:0.72rem;color:var(--text-muted)"></span>
             </div>
             <div class="filters" style="margin-bottom:0.8rem">
               <div class="search-wrap" style="width:100%">
                 <span class="search-icon">🔍</span>
-                <input class="filter-input" id="archivesHWSearch" placeholder="Rechercher…" oninput="loadArchives()"/>
+                <input class="filter-input" id="archivesNRSearch" placeholder="Rechercher…" oninput="loadArchives()"/>
               </div>
             </div>
-            <div id="archivesHasWebsite"></div>
+            <div id="archivesNoResult"></div>
+          </div>
+          <!-- Section NL pleine largeur -->
+          <div class="card" style="grid-column:1/-1;margin-top:0.5rem">
+            <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span>🇳🇱 Prospects NL <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;margin-left:0.5rem">— hors prospection active</span></span>
+              <span id="archivesNLCount" style="font-size:0.72rem;color:var(--text-muted)"></span>
+            </div>
+            <div class="filters" style="margin-bottom:0.8rem">
+              <div class="search-wrap" style="max-width:320px">
+                <span class="search-icon">🔍</span>
+                <input class="filter-input" id="archivesNLSearch" placeholder="Rechercher…" oninput="loadArchives()"/>
+              </div>
+            </div>
+            <div id="archivesNLList" style="columns:2;column-gap:1rem"></div>
           </div>
         </div>
       </div>
@@ -847,6 +905,7 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
         <button onclick="searchBCE(document.getElementById('detailTitle').textContent)" title="Chercher sur la BCE (gérant)" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.82rem;flex-shrink:0;transition:color 0.15s;font-weight:600;letter-spacing:-0.01em" onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='var(--text-muted)'">BCE</button>
       </div>
       <div style="display:flex;gap:0.5rem;align-items:center">
+        <div id="callTimer" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);font-variant-numeric:tabular-nums;min-width:42px;text-align:center;display:none">0:00</div>
         <button class="btn btn-ghost btn-sm" id="editProspectBtn" onclick="editCurrentProspect()">✏️ Éditer</button>
         <button class="modal-close" onclick="closeModal('modalDetail')">✕</button>
       </div>
@@ -854,6 +913,7 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
     <div class="modal-body">
       <!-- Infos -->
       <div id="detailInfo"></div>
+      <div id="detailStaleAlert" style="display:none;margin:0.6rem 0;padding:0.6rem 0.9rem;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;font-size:0.82rem;color:#DC2626;font-weight:500"></div>
 
       <!-- Log un appel -->
       <div style="margin-top:1.4rem">
@@ -871,15 +931,39 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
           <button class="call-action-btn btn-green" onclick="logCall('meeting_booked')">
             <span class="icon">🎯</span> RDV décroché !
           </button>
-          <button class="call-action-btn btn-red" onclick="logCall('not_interested')">
+          <button class="call-action-btn btn-red" onclick="openObjectionPicker()">
             <span class="icon">🚫</span> Pas intéressé
           </button>
           <button class="call-action-btn btn-blue" onclick="logCall('interested')">
             <span class="icon">👍</span> Intéressé
           </button>
-          <button class="call-action-btn" style="background:rgba(20,184,166,0.1);color:#0F766E;border:1px solid rgba(20,184,166,0.25);grid-column:1/-1" onclick="logCall('has_website')">
-            <span class="icon">🌐</span> Déjà un site web
+          <button class="call-action-btn" style="background:rgba(107,114,128,0.1);color:#374151;border:1px solid rgba(107,114,128,0.25)" onclick="logCall('no_result')">
+            <span class="icon">🤷</span> Abouti à rien
           </button>
+          <button class="call-action-btn" style="background:rgba(20,184,166,0.1);color:#0F766E;border:1px solid rgba(20,184,166,0.25)" onclick="logCall('has_website')">
+            <span class="icon">🌐</span> Déjà un site
+          </button>
+        </div>
+        <!-- Auto-callback banner (shown after no_answer) -->
+        <div id="autoCallbackBanner" style="display:none;margin-top:0.6rem;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:0.7rem 0.9rem;align-items:center;gap:0.6rem;flex-wrap:wrap">
+          <span style="font-size:0.82rem;color:#4338CA;font-weight:500;flex:1">📵 Pas répondu — programmer un rappel ?</span>
+          <button onclick="scheduleAutoCallback(1)" style="padding:0.3rem 0.7rem;border-radius:6px;border:1px solid #818CF8;background:white;color:#4338CA;font-size:0.78rem;cursor:pointer;font-weight:500">Demain</button>
+          <button onclick="scheduleAutoCallback(2)" style="padding:0.3rem 0.7rem;border-radius:6px;border:1px solid #818CF8;background:white;color:#4338CA;font-size:0.78rem;cursor:pointer;font-weight:500">Dans 2j</button>
+          <button onclick="openCallbackPicker()" style="padding:0.3rem 0.7rem;border-radius:6px;border:1px solid #818CF8;background:white;color:#4338CA;font-size:0.78rem;cursor:pointer;font-weight:500">Choisir…</button>
+          <button onclick="dismissAutoCallback()" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:1rem;padding:0">✕</button>
+        </div>
+        <!-- Objection picker (inline) -->
+        <div id="objectionPicker" style="display:none;margin-top:0.6rem;background:#FFF1F2;border:1px solid #FECDD3;border-radius:10px;padding:0.8rem 0.9rem">
+          <div style="font-size:0.82rem;color:#BE123C;font-weight:600;margin-bottom:0.6rem">🚫 Raison du refus</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem">
+            <button onclick="logNotInterested('Prix trop élevé')" style="padding:0.45rem;border-radius:7px;border:1px solid #FECDD3;background:white;color:#BE123C;font-size:0.78rem;cursor:pointer;text-align:left">💸 Prix trop élevé</button>
+            <button onclick="logNotInterested('Déjà un prestataire')" style="padding:0.45rem;border-radius:7px;border:1px solid #FECDD3;background:white;color:#BE123C;font-size:0.78rem;cursor:pointer;text-align:left">🤝 Déjà un prestataire</button>
+            <button onclick="logNotInterested('Pas le temps')" style="padding:0.45rem;border-radius:7px;border:1px solid #FECDD3;background:white;color:#BE123C;font-size:0.78rem;cursor:pointer;text-align:left">⏳ Pas le temps</button>
+            <button onclick="logNotInterested('Pas intéressé')" style="padding:0.45rem;border-radius:7px;border:1px solid #FECDD3;background:white;color:#BE123C;font-size:0.78rem;cursor:pointer;text-align:left">🚫 Pas intéressé</button>
+            <button onclick="logNotInterested('Budget limité')" style="padding:0.45rem;border-radius:7px;border:1px solid #FECDD3;background:white;color:#BE123C;font-size:0.78rem;cursor:pointer;text-align:left">💶 Budget limité</button>
+            <button onclick="logNotInterested('')" style="padding:0.45rem;border-radius:7px;border:1px solid #FECDD3;background:white;color:#94A3B8;font-size:0.78rem;cursor:pointer;text-align:left">— Autre (note ci-dessous)</button>
+          </div>
+          <button onclick="document.getElementById('objectionPicker').style.display='none'" style="margin-top:0.6rem;background:none;border:none;color:#94A3B8;font-size:0.78rem;cursor:pointer">Annuler</button>
         </div>
         <div class="form-group" style="margin-top:0.8rem">
           <label class="form-label">Commentaire</label>
@@ -889,57 +973,31 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
 
       <!-- Message rapide à copier (pendant le call) -->
       <div id="quickMsgSection" style="display:none;margin-bottom:1.2rem;background:var(--surface2);border-radius:var(--radius);padding:1rem 1.2rem;border-left:3px solid #7C3AED">
-        <div class="card-title" style="margin-bottom:0.8rem;color:#A78BFA">💬 Message rapide — à copier pendant le call</div>
-        <div class="form-grid" style="gap:0.7rem;margin-bottom:0.8rem">
-          <div class="form-group">
-            <label class="form-label">Prénom</label>
-            <input class="form-input" id="qmFirstName" placeholder="Jean" oninput="refreshQuickMsg()"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Date & heure du visio</label>
-            <input class="form-input" id="qmDate" type="datetime-local" oninput="refreshQuickMsg()"/>
-          </div>
-          <div class="form-group full">
-            <label class="form-label">Lien Google Meet</label>
-            <div style="display:flex;gap:0.5rem">
-              <input class="form-input" id="qmMeetLink" placeholder="https://meet.google.com/..." oninput="refreshQuickMsg()"/>
-              <button type="button" onclick="window.open('https://meet.new','_blank')" style="flex-shrink:0;padding:0 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-size:0.8rem;white-space:nowrap">+ Créer</button>
-            </div>
-          </div>
+        <div class="card-title" style="margin-bottom:0.8rem;color:#A78BFA">💬 Lien Meet — à envoyer pendant le call</div>
+        <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.7rem">
+          <input class="form-input" id="qmFirstName" placeholder="Prénom" oninput="refreshQuickMsg()" style="max-width:120px"/>
+          <input class="form-input" id="qmMeetLink" placeholder="meet.google.com/xxx-xxx-xxx" oninput="refreshQuickMsg()" style="flex:1"/>
+          <input class="form-input" id="qmDate" type="datetime-local" oninput="refreshQuickMsg()" style="max-width:160px"/>
+          <button type="button" onclick="window.open('https://meet.new','_blank')" style="flex-shrink:0;padding:0.55rem 0.7rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-size:0.78rem;white-space:nowrap">+ Meet</button>
         </div>
-        <div id="quickMsgPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;font-size:0.82rem;color:var(--text-soft);line-height:1.6;white-space:pre-wrap;margin-bottom:0.7rem"></div>
-        <button class="btn btn-primary" style="width:100%;background:#7C3AED;border:none" onclick="copyQuickMsg()">
-          📋 Copier le message
-        </button>
+        <div id="quickMsgPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.9rem;font-size:0.8rem;color:var(--text-soft);line-height:1.6;white-space:pre-wrap;margin-bottom:0.6rem"></div>
+        <button class="btn btn-primary" style="width:100%;background:#7C3AED;border:none" onclick="copyQuickMsg()">📋 Copier</button>
       </div>
 
       <!-- Invitation email (après le call, pour confirmer) -->
       <div id="emailInviteSection" style="display:none;margin-bottom:1.2rem;background:var(--surface2);border-radius:var(--radius);padding:1rem 1.2rem;border-left:3px solid #10B981">
-        <div class="card-title" style="margin-bottom:0.8rem;color:#059669">✉️ Email de confirmation — à copier/coller</div>
-        <div style="display:flex;gap:0.7rem;margin-bottom:0.8rem;flex-wrap:wrap">
-          <div class="form-group" style="flex:1;min-width:140px">
-            <label class="form-label">Prénom du contact</label>
-            <input class="form-input" id="inviteContactName" placeholder="Ex: Jean" oninput="refreshInviteEmail()"/>
-          </div>
-          <div class="form-group" style="flex:1;min-width:140px">
-            <label class="form-label">Signataire</label>
-            <div style="display:flex;gap:0.4rem">
-              <button type="button" id="signerGuillaume" onclick="selectSigner('Guillaume')" style="flex:1;padding:0.55rem;border-radius:8px;border:2px solid var(--accent);background:rgba(79,70,229,0.1);color:var(--accent);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.15s">Guillaume</button>
-              <button type="button" id="signerAdrien" onclick="selectSigner('Adrien')" style="flex:1;padding:0.55rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.15s">Adrien</button>
-            </div>
-          </div>
-          <div class="form-group" style="flex:2;min-width:200px">
-            <label class="form-label">Lien Google Meet</label>
-            <div style="display:flex;gap:0.5rem">
-              <input class="form-input" id="inviteMeetLink" placeholder="https://meet.google.com/..." oninput="refreshInviteEmail()"/>
-              <button type="button" onclick="window.open('https://meet.new','_blank')" style="flex-shrink:0;padding:0 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-size:0.8rem;white-space:nowrap">+ Créer</button>
-            </div>
+        <div class="card-title" style="margin-bottom:0.8rem;color:#059669">✉️ Email de confirmation RDV</div>
+        <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.7rem;flex-wrap:wrap">
+          <input class="form-input" id="inviteContactName" placeholder="Prénom" oninput="refreshInviteEmail()" style="max-width:120px"/>
+          <input class="form-input" id="inviteMeetLink" placeholder="meet.google.com/xxx-xxx-xxx" oninput="refreshInviteEmail()" style="flex:1;min-width:160px"/>
+          <button type="button" onclick="window.open('https://meet.new','_blank')" style="flex-shrink:0;padding:0.55rem 0.7rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);cursor:pointer;font-size:0.78rem;white-space:nowrap">+ Meet</button>
+          <div style="display:flex;gap:0.3rem;flex-shrink:0">
+            <button type="button" id="signerGuillaume" onclick="selectSigner('Guillaume')" style="padding:0.4rem 0.7rem;border-radius:8px;border:2px solid var(--accent);background:rgba(79,70,229,0.1);color:var(--accent);font-size:0.78rem;font-weight:600;cursor:pointer">Guillaume</button>
+            <button type="button" id="signerAdrien" onclick="selectSigner('Adrien')" style="padding:0.4rem 0.7rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);font-size:0.78rem;cursor:pointer">Adrien</button>
           </div>
         </div>
-        <div id="inviteEmailPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;font-size:0.82rem;color:var(--text-soft);line-height:1.6;white-space:pre-wrap;margin-bottom:0.7rem"></div>
-        <button class="btn btn-primary" style="width:100%;background:#059669;border:none" onclick="copyInviteEmail()">
-          📋 Copier l'email
-        </button>
+        <div id="inviteEmailPreview" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.9rem;font-size:0.8rem;color:var(--text-soft);line-height:1.6;white-space:pre-wrap;margin-bottom:0.6rem"></div>
+        <button class="btn btn-primary" style="width:100%;background:#059669;border:none" onclick="copyInviteEmail()">📋 Copier l'email</button>
       </div>
 
       <!-- Script d'appel -->
@@ -996,6 +1054,7 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
           <option value="meeting_booked">🎯 RDV décroché</option>
           <option value="not_interested">🚫 Pas intéressé</option>
           <option value="has_website">🌐 Déjà un site web</option>
+          <option value="no_result">🤷 Abouti à rien</option>
           <option value="post_rdv">🤝 Après RDV</option>
           <option value="site_delivered">🚀 Site livré</option>
           <option value="maintenance">🔧 Maintenance</option>
@@ -1135,8 +1194,114 @@ body.dark .pw-card,body.dark .setup-card{box-shadow:0 4px 24px rgba(0,0,0,0.5)}
   </div>
 </div>
 
+<!-- ══ FLOATING INCOMING CALL BUTTON ══ -->
+<button onclick="openIncomingCall()" id="incomingCallFab" title="Appel entrant — identifier le prospect" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:150;width:52px;height:52px;border-radius:50%;background:var(--green);color:white;border:none;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:transform 0.15s,box-shadow 0.15s;display:flex;align-items:center;justify-content:center" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">📞</button>
+
+<!-- ══ MODAL : APPEL ENTRANT ══ -->
+<div class="modal-overlay" id="modalIncoming">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h2>📞 Appel entrant</h2>
+      <button class="modal-close" onclick="closeModal('modalIncoming')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:0.83rem;color:var(--text-muted);margin-bottom:0.8rem">Tape les 4 derniers chiffres du numéro pour identifier le prospect.</div>
+      <input class="form-input" id="incomingPhoneSearch" placeholder="Ex: 3142" maxlength="8" oninput="searchIncomingPhone(this.value)" autocomplete="off" style="font-size:1.1rem;letter-spacing:0.08em;font-weight:600"/>
+      <div id="incomingResults" style="margin-top:0.8rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VERIFICATION MODE ══ -->
+<div id="verifyMode" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;padding:2rem;overflow-y:auto">
+  <div style="max-width:520px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--text)">🔍 Mode Vérification</div>
+        <div id="verifyCounter" style="font-size:0.8rem;color:var(--text-muted)">Vérification des sites web</div>
+      </div>
+      <button onclick="exitVerifyMode()" style="padding:0.5rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);cursor:pointer;font-size:0.82rem">✕ Quitter</button>
+    </div>
+    <div id="verifyCard" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem 1.8rem;margin-bottom:1.2rem"></div>
+    <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.7rem">
+      <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Langue :</span>
+      <button id="verifyLangFR" onclick="setVerifyLanguage('FR')" style="padding:0.35rem 0.9rem;border-radius:8px;border:2px solid var(--border);background:var(--surface);color:var(--text-muted);font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.15s">🇫🇷 FR</button>
+      <button id="verifyLangNL" onclick="setVerifyLanguage('NL')" style="padding:0.35rem 0.9rem;border-radius:8px;border:2px solid var(--border);background:var(--surface);color:var(--text-muted);font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.15s">🇧🇪 NL</button>
+      <button id="verifyLangClear" onclick="setVerifyLanguage(null)" style="display:none;padding:0.2rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-muted);font-size:0.72rem;cursor:pointer">✕</button>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem">
+      <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.7rem">Ce prospect a-t-il un site web ?</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:0.5rem;margin-bottom:0.8rem">
+        <button onclick="verifyNoSite()" style="padding:0.9rem;border-radius:10px;background:rgba(79,70,229,0.1);border:1px solid rgba(79,70,229,0.3);color:var(--accent-h);font-weight:600;cursor:pointer;font-size:0.88rem">🚫 Pas de site web — À appeler !</button>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem;font-weight:600">A un site — qualité :</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem">
+        <button onclick="verifySite('bon')" style="padding:0.7rem;border-radius:10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#059669;font-weight:600;cursor:pointer;font-size:0.82rem">✅ Bon</button>
+        <button onclick="verifySite('moyen')" style="padding:0.7rem;border-radius:10px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);color:#B45309;font-weight:600;cursor:pointer;font-size:0.82rem">⚠️ Moyen</button>
+        <button onclick="verifySite('mauvais')" style="padding:0.7rem;border-radius:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#DC2626;font-weight:600;cursor:pointer;font-size:0.82rem">❌ Mauvais</button>
+      </div>
+      <input id="verifyUrlInput" class="form-input" placeholder="URL du site (optionnel)" style="margin-top:0.7rem;font-size:0.82rem"/>
+    </div>
+    <button onclick="verifySkip()" style="width:100%;padding:0.7rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);cursor:pointer;font-size:0.85rem">Passer →</button>
+    <div style="margin-top:1rem;background:var(--surface2);border-radius:8px;height:6px;overflow:hidden">
+      <div id="verifyBar" style="height:100%;background:#059669;border-radius:8px;transition:width 0.4s ease;width:0%"></div>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- ══ SPRINT MODE ══ -->
+<div id="sprintMode" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;padding:2rem;overflow-y:auto">
+  <div style="max-width:580px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+      <div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--text)">⚡ Sprint d'appels</div>
+        <div id="sprintCounter" style="font-size:0.8rem;color:var(--text-muted)">—</div>
+      </div>
+      <button onclick="exitSprintMode()" style="padding:0.5rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);cursor:pointer;font-size:0.82rem">✕ Quitter</button>
+    </div>
+    <!-- Filtres sprint -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:1.2rem;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:0.5rem;flex:1;min-width:140px">
+        <span style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap">Langue :</span>
+        <select id="sprintLangueFilter" onchange="applySprintFilters()" style="flex:1;padding:0.4rem 0.7rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);font-size:0.82rem">
+          <option value="">Toutes</option>
+          <option value="FR" selected>🇫🇷 Français</option>
+          <option value="NL">🇳🇱 Néerlandais</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex:1;min-width:140px">
+        <span style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap">Secteur :</span>
+        <select id="sprintSectorFilter" onchange="applySprintFilters()" style="flex:1;padding:0.4rem 0.7rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);font-size:0.82rem">
+          <option value="">Tous</option>
+        </select>
+      </div>
+    </div>
+    <div id="sprintCard" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem 1.8rem;margin-bottom:1.2rem"></div>
+    <div style="background:var(--surface2);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem">
+      <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem">Résultat de cet appel</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+        <button class="call-action-btn btn-blue" onclick="sprintLog('no_answer')"><span class="icon">📵</span> Pas répondu</button>
+        <button class="call-action-btn btn-purple" onclick="sprintCallback()"><span class="icon">⏰</span> Rappeler à…</button>
+        <button class="call-action-btn btn-green" onclick="sprintLog('meeting_booked')"><span class="icon">🎯</span> RDV décroché !</button>
+        <button class="call-action-btn btn-blue" onclick="sprintLog('interested')"><span class="icon">👍</span> Intéressé</button>
+        <button class="call-action-btn btn-red" onclick="sprintLog('not_interested')"><span class="icon">🚫</span> Pas intéressé</button>
+        <button class="call-action-btn" style="background:rgba(107,114,128,0.1);color:#374151;border:1px solid rgba(107,114,128,0.25)" onclick="sprintLog('no_result')"><span class="icon">🤷</span> Abouti à rien</button>
+        <button class="call-action-btn" style="background:rgba(20,184,166,0.1);color:#0F766E;border:1px solid rgba(20,184,166,0.25);grid-column:1/-1" onclick="sprintLog('has_website')"><span class="icon">🌐</span> Déjà un site web</button>
+      </div>
+      <textarea id="sprintComment" class="form-input" rows="2" placeholder="Notes…" style="margin-top:0.6rem"></textarea>
+    </div>
+    <div style="display:flex;gap:0.6rem">
+      <button onclick="sprintSkip()" style="flex:1;padding:0.7rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);cursor:pointer;font-size:0.85rem">Passer →</button>
+      <button onclick="openDetail(currentSprintProspectId);exitSprintMode()" style="padding:0.7rem 1rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--accent-h);cursor:pointer;font-size:0.85rem">Voir détails</button>
+    </div>
+    <div id="sprintProgress" style="margin-top:1.2rem;background:var(--surface2);border-radius:8px;height:6px;overflow:hidden">
+      <div id="sprintBar" style="height:100%;background:var(--accent);border-radius:8px;transition:width 0.4s ease;width:0%"></div>
+    </div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════
@@ -1156,6 +1321,13 @@ let allProspects = [];
 let currentProspectId = null;
 let editingProspectId = null;
 let websiteOn = false;
+let _callTimerInterval = null;
+let _callTimerStart = null;
+let _sprintQueue = [];
+let _sprintIndex = 0;
+let _sprintDone = 0;
+let currentSprintProspectId = null;
+let _sprintCallbackMode = false;
 let calendarEvents = JSON.parse(localStorage.getItem('calEvents') || '[]');
 
 function initSupabase() {
@@ -1249,9 +1421,25 @@ function toggleScript() {
 //  APPEL SUIVANT
 // ══════════════════════════════════════════
 function openNextProspect() {
-  const next = allProspects.find(p => p.status === 'to_call' || p.status === 'no_answer' || p.status === 'callback');
-  if (!next) { toast('✅ Plus de prospects à appeler pour l\'instant !', 'success'); return; }
-  openDetail(next.id);
+  const now = new Date();
+  const candidates = allProspects.filter(p => ['to_call','no_answer','callback'].includes(p.status));
+  if (!candidates.length) { toast('✅ Plus de prospects à appeler pour l\'instant !', 'success'); return; }
+  const scored = candidates.map(p => {
+    let score = 0;
+    if (p.status === 'callback') {
+      const t = p.callback_time ? new Date(p.callback_time) : null;
+      if (t && t < now) score = 100; // rappel en retard = priorité max
+      else if (t && (t - now) < 3600000) score = 85; // rappel dans l'heure
+      else if (t) score = 70;
+      else score = 60;
+    } else if (p.status === 'no_answer') {
+      score = 40;
+    } else {
+      score = 10;
+    }
+    return { p, score };
+  }).sort((a, b) => b.score - a.score);
+  openDetail(scored[0].p.id);
 }
 
 // ══════════════════════════════════════════
@@ -1773,7 +1961,89 @@ async function saveRdvInfo() {
   if (p) Object.assign(p, payload);
 }
 
+// ── BEST CALL TIME ──
+async function saveBestCallTime() {
+  const val = document.getElementById('bestCallTime')?.value;
+  const payload = { best_call_time: val || null, updated_at: new Date().toISOString() };
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  } else {
+    const p = allProspects.find(x => x.id === currentProspectId);
+    if (p) Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (p) p.best_call_time = val;
+}
+
+// ── VERIFIED TOGGLE ──
+async function toggleVerified() {
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (!p) return;
+  const newVal = !p.verified;
+  const payload = { verified: newVal, updated_at: new Date().toISOString() };
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  } else {
+    Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  Object.assign(p, payload);
+  toast(newVal ? '✓ Marqué comme vérifié' : 'Marqué comme non vérifié', newVal ? 'success' : '');
+  await openDetail(currentProspectId);
+}
+
+// ── SITE QUALITY ──
+async function setSiteQuality(quality) {
+  const p = allProspects.find(x => x.id === currentProspectId);
+  if (!p) return;
+  const payload = { website_quality: quality, updated_at: new Date().toISOString() };
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', currentProspectId);
+  } else {
+    Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  Object.assign(p, payload);
+  toast('Qualité du site : ' + quality, 'success');
+  await openDetail(currentProspectId);
+}
+
 // ══ COPY ══
+// ══════════════════════════════════════════
+//  APPEL ENTRANT — RECHERCHE PAR 4 CHIFFRES
+// ══════════════════════════════════════════
+function openIncomingCall() {
+  document.getElementById('incomingPhoneSearch').value = '';
+  document.getElementById('incomingResults').innerHTML = '';
+  openModal('modalIncoming');
+  setTimeout(() => document.getElementById('incomingPhoneSearch').focus(), 80);
+}
+
+function searchIncomingPhone(val) {
+  const el = document.getElementById('incomingResults');
+  const digits = val.replace(/\D/g, '');
+  if (digits.length < 3) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem">Tape au moins 3 chiffres…</div>'; return; }
+  const matches = allProspects.filter(p => {
+    if (!p.phone) return false;
+    const clean = p.phone.replace(/\D/g, '');
+    return clean.endsWith(digits) || clean.includes(digits);
+  });
+  if (!matches.length) {
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem;padding:0.5rem 0">Aucun prospect trouvé avec ces chiffres.</div>';
+    return;
+  }
+  el.innerHTML = matches.map(p => `
+    <div onclick="closeModal('modalIncoming');openDetail('${p.id}')" style="display:flex;align-items:center;gap:0.8rem;padding:0.8rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-bottom:0.5rem;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:0.9rem;color:var(--text)">${p.business_name}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">${[p.city, p.sector].filter(Boolean).join(' · ')}</div>
+        <div style="font-size:0.82rem;color:var(--accent-h);font-weight:600;margin-top:0.2rem">${p.phone}</div>
+      </div>
+      ${statusBadge(p.status)}
+    </div>`).join('');
+}
+
 function copyName(name) {
   navigator.clipboard.writeText(name).then(() => toast('📋 "' + name + '" copié !', ''));
 }
@@ -1854,7 +2124,15 @@ function toast(msg, type = '') {
 
 // ══ MODAL ══
 function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modalDetail' && _callTimerInterval) {
+    clearInterval(_callTimerInterval);
+    _callTimerInterval = null;
+    const el = document.getElementById('callTimer');
+    if (el) el.style.display = 'none';
+  }
+}
 document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
 });
@@ -1881,33 +2159,90 @@ async function loadProspects() {
   renderProspectsTable(allProspects);
 }
 
-const ARCHIVED_STATUSES = ['not_interested', 'has_website'];
+const ARCHIVED_STATUSES = ['not_interested', 'no_result'];
+const LIMBO_STATUSES = ['no_answer', 'voicemail', 'interested', 'meeting_booked', 'post_rdv', 'site_delivered', 'maintenance'];
+
+function _prospectsTableRow(p) {
+  const lastCall = p.calls && p.calls.length ? p.calls.sort((a,b) => new Date(b.called_at) - new Date(a.called_at))[0] : null;
+  return `<tr onclick="openDetail('${p.id}')">
+    <td class="primary">${p.business_name}<button class="copy-btn" onclick="event.stopPropagation();searchGoogle('${p.business_name.replace(/'/g,"\\'")} ${p.city||''}')" title="Chercher sur Google">🔍</button><button class="copy-btn" onclick="event.stopPropagation();searchBCE('${p.business_name.replace(/'/g,"\\'")}') " title="Chercher sur la BCE (gérant)" style="font-size:0.7rem;font-weight:700;color:var(--amber)">BCE</button></td>
+    <td>${p.sector || '—'}</td>
+    <td>${p.city || '—'}</td>
+    <td>${p.phone ? `<a href="tel:${p.phone}" onclick="event.stopPropagation()" style="color:var(--accent-h)">${p.phone}</a>` : '—'}</td>
+    <td>${p.has_website ? (p.website_url ? `<a href="${p.website_url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--green)">🌐 Oui</a>` : '🌐 Oui') + (p.website_quality ? ` <span class="site-quality-${p.website_quality}">${p.website_quality}</span>` : '') : '<span style="color:var(--text-muted)">Non</span>'}</td>
+    <td>${statusBadge(p.status)}${p.status==='callback' && p.callback_time && new Date(p.callback_time)<new Date() ? ' <span title="Rappel en retard !" style="color:#EF4444;font-size:0.85rem">🔴</span>' : ''}</td>
+    <td style="text-align:center">${p.verified ? '<span title="Vérifié" style="color:#059669;font-size:1rem">✓</span>' : '<span style="color:var(--text-muted);font-size:0.7rem">—</span>'}</td>
+    <td style="font-size:0.8rem;text-align:center">${p.calls && p.calls.length ? `<span style="font-weight:600;color:var(--accent-h)">${p.calls.length}</span>` : '—'}</td>
+    <td style="font-size:0.75rem;color:var(--text-muted)">${lastCall ? timeAgo(lastCall.called_at) : '—'}</td>
+    <td><div class="table-actions">
+      <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail('${p.id}')">📞 Appeler</button>
+      <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteProspect('${p.id}')" style="color:var(--red-bg)">🗑</button>
+    </div></td>
+  </tr>`;
+}
 
 function renderProspectsTable(list) {
-  const active = list.filter(p => !ARCHIVED_STATUSES.includes(p.status));
-  list = active;
+  const frList = list.filter(p => detectLangue(p) !== 'NL');
+  const mainList = frList.filter(p => ['to_call','callback'].includes(p.status));
+  const limboList = frList.filter(p => LIMBO_STATUSES.includes(p.status));
+  const hasWebList = frList.filter(p => p.status === 'has_website');
+
+  // ── Main table (À appeler + À rappeler) ──
   const tbody = document.getElementById('prospectsTable');
-  document.getElementById('prospectsCount').textContent = list.length + ' prospect' + (list.length !== 1 ? 's' : '');
-  if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="icon">🏢</div><p>Aucun prospect. Ajoutez-en un !</p></div></td></tr>';
-    return;
+  document.getElementById('prospectsCount').textContent = mainList.length + ' prospect' + (mainList.length !== 1 ? 's' : '') + ' à contacter';
+  if (!mainList.length) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty"><div class="icon">📋</div><p>Aucun prospect à appeler pour l\'instant.</p></div></td></tr>';
+  } else {
+    tbody.innerHTML = mainList.map(_prospectsTableRow).join('');
   }
-  tbody.innerHTML = list.map(p => {
-    const lastCall = p.calls && p.calls.length ? p.calls.sort((a,b) => new Date(b.called_at) - new Date(a.called_at))[0] : null;
-    return `<tr onclick="openDetail('${p.id}')">
-      <td class="primary">${p.business_name}<button class="copy-btn" onclick="event.stopPropagation();searchGoogle('${p.business_name.replace(/'/g,"\\'")} ${p.city||''}')" title="Chercher sur Google">🔍</button><button class="copy-btn" onclick="event.stopPropagation();searchBCE('${p.business_name.replace(/'/g,"\\'")}') " title="Chercher sur la BCE (gérant)" style="font-size:0.7rem;font-weight:700;color:var(--amber)">BCE</button></td>
-      <td>${p.sector || '—'}</td>
-      <td>${p.city || '—'}</td>
-      <td>${p.phone ? `<a href="tel:${p.phone}" onclick="event.stopPropagation()" style="color:var(--accent-h)">${p.phone}</a>` : '—'}</td>
-      <td>${p.has_website ? (p.website_url ? `<a href="${p.website_url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--green)">🌐 Oui</a>` : '🌐 Oui') : '<span style="color:var(--text-muted)">Non</span>'}</td>
-      <td>${statusBadge(p.status)}</td>
-      <td style="font-size:0.75rem;color:var(--text-muted)">${lastCall ? timeAgo(lastCall.called_at) : '—'}</td>
-      <td><div class="table-actions">
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail('${p.id}')">📞 Appeler</button>
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteProspect('${p.id}')" style="color:var(--red-bg)">🗑</button>
-      </div></td>
-    </tr>`;
-  }).join('');
+
+  // ── En attente / Autres statuts ──
+  const limboEl = document.getElementById('limboList');
+  const limboCntEl = document.getElementById('limboCount');
+  if (limboEl) {
+    limboCntEl.textContent = limboList.length;
+    if (!limboList.length) {
+      limboEl.innerHTML = '<div class="empty" style="padding:1.5rem"><p>Aucun prospect en attente.</p></div>';
+    } else {
+      limboEl.innerHTML = '<table style="width:100%"><thead><tr><th>Entreprise</th><th>Secteur</th><th>Ville</th><th>Téléphone</th><th>Site web</th><th>Statut</th><th>✓</th><th>Tentatives</th><th>Dernier appel</th><th></th></tr></thead><tbody>' +
+        limboList.map(_prospectsTableRow).join('') + '</tbody></table>';
+    }
+  }
+
+  // ── Ont un site web ──
+  const hwEl = document.getElementById('hasWebList');
+  const hwCntEl = document.getElementById('hasWebCount');
+  if (hwEl) {
+    hwCntEl.textContent = hasWebList.length;
+    if (!hasWebList.length) {
+      hwEl.innerHTML = '<div class="empty" style="padding:1.5rem"><p>Aucun prospect avec site web pour l\'instant.</p></div>';
+    } else {
+      hwEl.innerHTML = hasWebList.map(p => {
+        const qualityBadge = p.website_quality ? `<span class="site-quality-${p.website_quality}" style="margin-left:0.3rem">${p.website_quality}</span>` : '';
+        const siteLink = p.website_url ? `<a href="${p.website_url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent-h);font-size:0.8rem">${p.website_url}</a>` : '—';
+        return `<div class="callback-item" onclick="openDetail('${p.id}')" style="cursor:pointer">
+          <div class="callback-info" style="flex:1;min-width:0">
+            <div class="callback-name" style="display:flex;align-items:center;gap:0.4rem">${p.business_name}${qualityBadge}</div>
+            <div class="callback-detail">${[p.city, p.sector, p.phone].filter(Boolean).join(' · ')}</div>
+            <div style="margin-top:0.2rem;font-size:0.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${siteLink}</div>
+          </div>
+          <div style="display:flex;gap:0.4rem;flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail('${p.id}')">✏️</button>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();reactivateProspect('${p.id}')" title="Remettre en prospection">↩️</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function toggleCollapse(id) {
+  const el = document.getElementById(id);
+  const chevronId = id === 'limboSection' ? 'limboChevron' : 'hasWebChevron';
+  const ch = document.getElementById(chevronId);
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (ch) ch.textContent = open ? '▼' : '▲';
 }
 
 function statusBadge(status) {
@@ -1916,7 +2251,8 @@ function statusBadge(status) {
     not_interested: '🚫 Pas intéressé', meeting_booked: '🎯 RDV décroché', converted: '✅ Converti',
     voicemail: '📬 Messagerie', interested: '👍 Intéressé',
     post_rdv: '🤝 Après RDV', site_delivered: '🚀 Site livré', maintenance: '🔧 Maintenance',
-    has_website: '🌐 Déjà un site web'
+    has_website: '🌐 Déjà un site web',
+    no_result: '🤷 Abouti à rien'
   };
   return `<span class="badge badge-${status}">${map[status] || status}</span>`;
 }
@@ -2040,8 +2376,12 @@ function toggleWebsiteSwitch() {
 async function saveProspect() {
   const name = document.getElementById('f_business_name').value.trim();
   if (!name) { toast('Le nom est requis', 'error'); return; }
-  const duplicate = allProspects.find(p => p.business_name.toLowerCase() === name.toLowerCase() && p.id !== editingProspectId);
-  if (duplicate) { toast('⚠️ Ce prospect existe déjà dans le CRM', 'error'); return; }
+  const phone = document.getElementById('f_phone').value.trim();
+  const duplicateName = allProspects.find(p => p.business_name.toLowerCase() === name.toLowerCase() && p.id !== editingProspectId);
+  if (duplicateName) { toast('⚠️ Ce nom existe déjà dans le CRM (' + duplicateName.city + ')', 'error'); return; }
+  const phoneClean = phone.replace(/\D/g,'');
+  const duplicatePhone = phoneClean.length >= 8 && allProspects.find(p => p.id !== editingProspectId && p.phone && p.phone.replace(/\D/g,'') === phoneClean);
+  if (duplicatePhone) { toast('⚠️ Ce numéro existe déjà — ' + duplicatePhone.business_name, 'error'); return; }
   const btn = document.getElementById('saveProspectBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   const payload = {
@@ -2100,6 +2440,12 @@ async function openDetail(id) {
   const p = allProspects.find(x => x.id === id);
   if (!p) return;
   document.getElementById('detailTitle').textContent = p.business_name;
+  const staleAlert = document.getElementById('detailStaleAlert');
+  if (staleAlert) {
+    const isStale = p.status === 'callback' && p.callback_time && new Date(p.callback_time) < new Date();
+    staleAlert.style.display = isStale ? 'block' : 'none';
+    if (isStale) staleAlert.textContent = '🔴 Rappel en retard — prévu le ' + new Date(p.callback_time).toLocaleDateString('fr-BE',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  }
 
   // Info panel
   document.getElementById('detailInfo').innerHTML = `
@@ -2108,16 +2454,43 @@ async function openDetail(id) {
       ${p.has_website ? '<span class="badge" style="background:var(--green-bg);color:#4ADE80">🌐 Site web</span>' : '<span class="badge" style="background:var(--red-bg);color:#F87171">🚫 Sans site</span>'}
       ${p.sector ? `<span class="badge" style="background:var(--surface2);color:var(--text-soft)">🏷 ${p.sector}</span>` : ''}
     </div>
+    <div style="margin-top:0.5rem;display:flex;align-items:center;gap:0.5rem">
+      <span style="font-size:0.75rem;color:var(--text-muted)">Vérifié :</span>
+      <button id="verifiedToggle" onclick="toggleVerified()" style="padding:0.25rem 0.6rem;border-radius:6px;border:1px solid ${p.verified ? '#059669' : 'var(--border)'};background:${p.verified ? 'rgba(16,185,129,0.1)' : 'var(--surface)'};color:${p.verified ? '#059669' : 'var(--text-muted)'};font-size:0.75rem;cursor:pointer;font-weight:500">${p.verified ? '✓ Vérifié' : 'Non vérifié'}</button>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;font-size:0.83rem">
       ${p.city ? `<div><span style="color:var(--text-muted)">📍 Ville</span><br><strong>${p.city}</strong></div>` : ''}
       ${p.phone ? `<div><span style="color:var(--text-muted)">📞 Tél</span><br><a href="tel:${p.phone}" style="color:var(--accent-h);font-weight:600">${p.phone}</a></div>` : ''}
       ${p.email ? `<div><span style="color:var(--text-muted)">✉️ Email</span><br><a href="mailto:${p.email}" style="color:var(--accent-h)">${p.email}</a></div>` : ''}
-      ${p.website_url ? `<div><span style="color:var(--text-muted)">🌐 Site</span><br><a href="${p.website_url}" target="_blank" style="color:var(--green)">${p.website_url.replace(/^https?:\/\//, '')}</a></div>` : ''}
+      ${p.website_url ? '<div><span style="color:var(--text-muted)">🌐 Site</span><br><a href="' + p.website_url + '" target="_blank" style="color:var(--green)">' + p.website_url.replace(/^https?:\/\//, '') + '</a>' +
+        (p.has_website ? '<br><div style="display:flex;gap:0.3rem;margin-top:0.3rem">' +
+          '<button onclick="setSiteQuality(\'bon\')" style="padding:0.2rem 0.5rem;border-radius:99px;border:1px solid ' + (p.website_quality==='bon'?'#059669':'var(--border)') + ';background:' + (p.website_quality==='bon'?'rgba(16,185,129,0.1)':'var(--surface)') + ';color:' + (p.website_quality==='bon'?'#059669':'var(--text-muted)') + ';font-size:0.7rem;cursor:pointer">✅ Bon</button>' +
+          '<button onclick="setSiteQuality(\'moyen\')" style="padding:0.2rem 0.5rem;border-radius:99px;border:1px solid ' + (p.website_quality==='moyen'?'#B45309':'var(--border)') + ';background:' + (p.website_quality==='moyen'?'rgba(234,179,8,0.1)':'var(--surface)') + ';color:' + (p.website_quality==='moyen'?'#B45309':'var(--text-muted)') + ';font-size:0.7rem;cursor:pointer">⚠️ Moyen</button>' +
+          '<button onclick="setSiteQuality(\'mauvais\')" style="padding:0.2rem 0.5rem;border-radius:99px;border:1px solid ' + (p.website_quality==='mauvais'?'#DC2626':'var(--border)') + ';background:' + (p.website_quality==='mauvais'?'rgba(239,68,68,0.1)':'var(--surface)') + ';color:' + (p.website_quality==='mauvais'?'#DC2626':'var(--text-muted)') + ';font-size:0.7rem;cursor:pointer">❌ Mauvais</button>' +
+        '</div>' : '') +
+      '</div>' : ''}
       ${p.years_in_business ? `<div><span style="color:var(--text-muted)">📅 Ancienneté</span><br><strong>${p.years_in_business} ans</strong></div>` : ''}
       ${p.contact_name ? `<div><span style="color:var(--text-muted)">👤 Contact</span><br><strong>${p.contact_name}</strong></div>` : ''}
     </div>
     ${p.notes ? `<div style="margin-top:0.8rem;padding:0.7rem;background:var(--surface2);border-radius:8px;font-size:0.82rem;color:var(--text-soft)">${p.notes}</div>` : ''}
+    <div style="margin-top:0.7rem;display:flex;align-items:center;gap:0.5rem">
+      <span style="font-size:0.75rem;color:var(--text-muted)">⏰ Meilleur moment pour appeler :</span>
+      <select id="bestCallTime" onchange="saveBestCallTime()" style="font-size:0.75rem;padding:0.25rem 0.4rem;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-soft)">
+        <option value="">Non défini</option>
+        <option value="Matin (8h-12h)">Matin (8h-12h)</option>
+        <option value="Midi (12h-14h)">Midi (12h-14h)</option>
+        <option value="Après-midi (14h-17h)">Après-midi (14h-17h)</option>
+        <option value="Fin de journée (17h-19h)">Fin de journée (17h-19h)</option>
+        <option value="Lundi">Lundi</option>
+        <option value="Vendredi">Vendredi</option>
+      </select>
+    </div>
   `;
+
+  // Set best call time select
+  if (document.getElementById('bestCallTime')) {
+    document.getElementById('bestCallTime').value = p.best_call_time || '';
+  }
 
   // Script d'appel
   renderScriptPanel(p);
@@ -2139,7 +2512,21 @@ async function openDetail(id) {
 
   // Call history
   await loadDetailHistory(id);
+  startCallTimer();
   openModal('modalDetail');
+}
+
+function startCallTimer() {
+  if (_callTimerInterval) clearInterval(_callTimerInterval);
+  _callTimerStart = Date.now();
+  const el = document.getElementById('callTimer');
+  if (!el) return;
+  el.style.display = 'inline-block';
+  el.textContent = '0:00';
+  _callTimerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - _callTimerStart) / 1000);
+    el.textContent = Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+  }, 1000);
 }
 
 async function loadDetailHistory(id) {
@@ -2151,7 +2538,7 @@ async function loadDetailHistory(id) {
     const p = allProspects.find(x => x.id === id);
     calls = (p?.calls || []).sort((a,b) => new Date(b.called_at) - new Date(a.called_at));
   }
-  const statusLabel = { no_answer:'Pas répondu', not_interested:'Pas intéressé', has_website:'Déjà un site web', callback:'Rappeler', meeting_booked:'RDV décroché !', voicemail:'Messagerie', interested:'Intéressé' };
+  const statusLabel = { no_answer:'Pas répondu', not_interested:'Pas intéressé', has_website:'Déjà un site web', no_result:'Abouti à rien', callback:'Rappeler', meeting_booked:'RDV décroché !', voicemail:'Messagerie', interested:'Intéressé' };
   const el = document.getElementById('detailCallHistory');
   if (!calls.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem;padding:0.5rem 0">Aucun appel enregistré.</div>'; return; }
   el.innerHTML = '<div class="call-history">' + calls.map(c => `
@@ -2165,6 +2552,21 @@ async function loadDetailHistory(id) {
       ${c.comment ? `<div class="call-comment">${c.comment}</div>` : ''}
     </div>
   `).join('') + '</div>';
+}
+
+// ── OBJECTION PICKER ──
+function openObjectionPicker() {
+  document.getElementById('objectionPicker').style.display = 'block';
+  document.getElementById('autoCallbackBanner').style.display = 'none';
+}
+
+function logNotInterested(reason) {
+  document.getElementById('objectionPicker').style.display = 'none';
+  const commentEl = document.getElementById('callComment');
+  if (reason && !commentEl.value.includes(reason)) {
+    commentEl.value = (commentEl.value ? commentEl.value + '\n' : '') + 'Objection: ' + reason;
+  }
+  logCall('not_interested');
 }
 
 // ── LOG CALL ──
@@ -2195,23 +2597,63 @@ async function logCall(status, callbackTime = null) {
     localStorage.setItem('prospects', JSON.stringify(allProspects));
   }
   document.getElementById('callComment').value = '';
-  const labels = { no_answer:'Appel logué — Pas répondu', not_interested:'🚫 Archivé — Pas intéressé', has_website:'🌐 Archivé — Déjà un site web', meeting_booked:'🎯 RDV décroché !', voicemail:'Messagerie enregistrée', interested:'👍 Intéressé noté', callback:'⏰ Rappel programmé' };
+  const labels = { no_answer:'Appel logué — Pas répondu', not_interested:'🚫 Archivé — Pas intéressé', has_website:'🌐 Archivé — Déjà un site web', no_result:'🤷 Archivé — Abouti à rien', meeting_booked:'🎯 RDV décroché !', voicemail:'Messagerie enregistrée', interested:'👍 Intéressé noté', callback:'⏰ Rappel programmé' };
   toast(labels[status] || 'Appel logué ✓', status === 'meeting_booked' ? 'success' : '');
   if (status === 'meeting_booked') launchConfetti();
   await loadAll();
   await loadDetailHistory(currentProspectId);
-  // Sync prospect status in modal
   const p = allProspects.find(x => x.id === currentProspectId);
   if (p) openDetail(currentProspectId);
+  // Auto-rappel suggestion after no_answer
+  if (status === 'no_answer') {
+    setTimeout(() => showAutoCallbackBanner(), 400);
+  }
+}
+
+function showAutoCallbackBanner() {
+  const banner = document.getElementById('autoCallbackBanner');
+  if (!banner) return;
+  banner.style.display = 'flex';
+  banner.style.animation = 'slideIn 0.3s ease';
+}
+
+function dismissAutoCallback() {
+  const banner = document.getElementById('autoCallbackBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+function scheduleAutoCallback(days) {
+  const dt = new Date();
+  dt.setDate(dt.getDate() + days);
+  dt.setHours(9, 0, 0, 0);
+  dismissAutoCallback();
+  if (document.getElementById('callbackComment')) document.getElementById('callComment').value = document.getElementById('callComment').value || '';
+  logCall('callback', dt.toISOString());
 }
 
 // ── CALLBACK PICKER ──
 function openCallbackPicker() {
   const presets = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','17:30','18:00'];
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('timePresets').innerHTML = presets.map(t =>
-    `<button class="time-preset" onclick="selectPreset('${today}T${t}','${t}')">${t}</button>`
-  ).join('');
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const in2days = new Date(); in2days.setDate(in2days.getDate()+2);
+  const in2daysStr = in2days.toISOString().split('T')[0];
+  const in3m = new Date(); in3m.setMonth(in3m.getMonth()+3);
+  const in6m = new Date(); in6m.setMonth(in6m.getMonth()+6);
+  const endYear = new Date(new Date().getFullYear(), 11, 1); // 1 décembre
+  const nextJan = new Date(new Date().getFullYear()+1, 0, 8); // 8 janvier
+  document.getElementById('timePresets').innerHTML =
+    `<div style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem">Aujourd'hui</div>` +
+    presets.map(t => `<button class="time-preset" onclick="selectPreset('${today}T${t}','${t}')">${t}</button>`).join('') +
+    `<div style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0.7rem 0 0.4rem;width:100%">Prochains jours</div>` +
+    `<button class="time-preset" onclick="selectPreset('${tomorrowStr}T09:00','Demain 9h')">Demain 9h</button>` +
+    `<button class="time-preset" onclick="selectPreset('${in2daysStr}T09:00','Dans 2j')">Dans 2 jours</button>` +
+    `<div style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0.7rem 0 0.4rem;width:100%">Long terme</div>` +
+    `<button class="time-preset" onclick="selectPreset('${in3m.toISOString().split('T')[0]}T09:00','Dans 3 mois')">Dans 3 mois</button>` +
+    `<button class="time-preset" onclick="selectPreset('${in6m.toISOString().split('T')[0]}T09:00','Dans 6 mois')">Dans 6 mois</button>` +
+    `<button class="time-preset" onclick="selectPreset('${endYear.toISOString().split('T')[0]}T09:00','Fin d\\'année')">Fin d'année</button>` +
+    `<button class="time-preset" onclick="selectPreset('${nextJan.toISOString().split('T')[0]}T09:00','Janv. prochain')">Janv. prochain</button>`;
   const now = new Date();
   now.setMinutes(Math.ceil(now.getMinutes()/15)*15, 0, 0);
   document.getElementById('callbackDatetime').value = now.toISOString().slice(0,16);
@@ -2231,7 +2673,26 @@ async function confirmCallback() {
   const comment = document.getElementById('callbackComment').value.trim();
   if (comment) document.getElementById('callComment').value = comment;
   closeModal('modalCallback');
-  await logCall('callback', new Date(dt).toISOString());
+  if (_sprintCallbackMode) {
+    _sprintCallbackMode = false;
+    const iso = new Date(dt).toISOString();
+    const callObj = { prospect_id: currentSprintProspectId, called_by: currentUser, called_at: new Date().toISOString(), status: 'callback', callback_time: iso, comment: document.getElementById('sprintComment').value.trim() || null };
+    if (sb) {
+      await sb.from('calls').insert(callObj);
+      await sb.from('prospects').update({ status:'callback', callback_time:iso, updated_at:new Date().toISOString() }).eq('id', currentSprintProspectId);
+    } else {
+      const p = allProspects.find(x => x.id === currentSprintProspectId);
+      if (p) { if (!p.calls) p.calls=[]; p.calls.push({id:crypto.randomUUID(),...callObj}); p.status='callback'; p.callback_time=iso; }
+      localStorage.setItem('prospects', JSON.stringify(allProspects));
+    }
+    _sprintDone++;
+    await loadAll();
+    _sprintIndex++;
+    renderSprintCard();
+    toast('⏰ Rappel programmé', '');
+  } else {
+    await logCall('callback', new Date(dt).toISOString());
+  }
 }
 
 // ══════════════════════════════════════════
@@ -2248,7 +2709,8 @@ async function loadDashboard() {
     allCalls.sort((a,b) => new Date(b.called_at) - new Date(a.called_at));
   }
 
-  const activeProspects = allProspects.filter(p => !ARCHIVED_STATUSES.includes(p.status));
+  const frProspects = allProspects.filter(p => detectLangue(p) !== 'NL');
+  const activeProspects = frProspects.filter(p => !ARCHIVED_STATUSES.includes(p.status));
   document.getElementById('stat-total').textContent = activeProspects.length;
   const todayCalls = allCalls.filter(c => new Date(c.called_at).toDateString() === today).length;
   document.getElementById('stat-today').textContent = todayCalls;
@@ -2263,23 +2725,23 @@ async function loadDashboard() {
     sparkVals.push(allCalls.filter(c=>{ const cd=new Date(c.called_at); return cd>=d&&cd<=de; }).length);
   }
   renderSparkline('dashSparkline', sparkVals, '#60A5FA');
-  const cbs = allProspects.filter(p => p.status === 'callback');
+  const cbs = frProspects.filter(p => p.status === 'callback');
   document.getElementById('stat-callbacks').textContent = cbs.length;
-  document.getElementById('stat-meetings').textContent = allProspects.filter(p => p.status === 'meeting_booked').length;
+  document.getElementById('stat-meetings').textContent = frProspects.filter(p => p.status === 'meeting_booked').length;
 
   // Pipeline value
   const pipelineStatuses = ['interested','meeting_booked','post_rdv'];
-  const pipelineVal = allProspects.filter(p => pipelineStatuses.includes(p.status)).reduce((s,p) => s + (p.deal_value || 1200), 0);
+  const pipelineVal = frProspects.filter(p => pipelineStatuses.includes(p.status)).reduce((s,p) => s + (p.deal_value || 1200), 0);
   document.getElementById('stat-pipeline').textContent = pipelineVal.toLocaleString('fr-BE') + ' €';
 
   // Conversion rate
-  const totalCalled = allProspects.filter(p => p.status !== 'to_call').length;
-  const meetings = allProspects.filter(p => ['meeting_booked','post_rdv','site_delivered','maintenance'].includes(p.status)).length;
+  const totalCalled = frProspects.filter(p => p.status !== 'to_call').length;
+  const meetings = frProspects.filter(p => ['meeting_booked','post_rdv','site_delivered','maintenance'].includes(p.status)).length;
   const rate = totalCalled > 0 ? Math.round(meetings / totalCalled * 100) : 0;
   document.getElementById('stat-rate').textContent = rate + '%';
 
   // Interested + stale
-  const interested = allProspects.filter(p => p.status === 'interested');
+  const interested = frProspects.filter(p => p.status === 'interested');
   document.getElementById('stat-interested').textContent = interested.length;
   const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
   const stale = interested.filter(p => {
@@ -2310,7 +2772,7 @@ async function loadDashboard() {
     </table>` : '<div class="empty"><p>Aucune donnée</p></div>';
 
   // Next prospect card
-  const next = allProspects.find(p => p.status === 'to_call' || p.status === 'callback');
+  const next = frProspects.find(p => p.status === 'to_call' || p.status === 'callback');
   const nextEl = document.getElementById('dashNextProspect');
   if (next) {
     nextEl.innerHTML = `<div class="callback-item" onclick="openDetail('${next.id}')">
@@ -2319,7 +2781,7 @@ async function loadDashboard() {
         <div class="callback-detail">${[next.city, next.sector, next.phone].filter(Boolean).join(' · ')}</div>
       </div>
       ${statusBadge(next.status)}
-    </div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">${allProspects.filter(p=>p.status==='to_call').length} prospects restants à appeler</div>`;
+    </div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">${frProspects.filter(p=>p.status==='to_call').length} prospects restants à appeler</div>`;
   } else {
     nextEl.innerHTML = '<div class="empty"><div class="icon">🎉</div><p>Tous les prospects ont été contactés !</p></div>';
   }
@@ -2417,13 +2879,17 @@ function loadCallbacks() {
 // ══════════════════════════════════════════
 function loadArchives() {
   const niSearch = (document.getElementById('archivesNISearch')?.value || '').toLowerCase();
-  const hwSearch = (document.getElementById('archivesHWSearch')?.value || '').toLowerCase();
+  const nrSearch = (document.getElementById('archivesNRSearch')?.value || '').toLowerCase();
+  const nlSearch = (document.getElementById('archivesNLSearch')?.value || '').toLowerCase();
 
   const notInterested = allProspects.filter(p => p.status === 'not_interested' && (!niSearch || (p.business_name||'').toLowerCase().includes(niSearch) || (p.city||'').toLowerCase().includes(niSearch)));
-  const hasWebsite = allProspects.filter(p => p.status === 'has_website' && (!hwSearch || (p.business_name||'').toLowerCase().includes(hwSearch) || (p.city||'').toLowerCase().includes(hwSearch)));
+  const noResult = allProspects.filter(p => p.status === 'no_result' && (!nrSearch || (p.business_name||'').toLowerCase().includes(nrSearch) || (p.city||'').toLowerCase().includes(nrSearch)));
+  const nlProspects = allProspects.filter(p => detectLangue(p) === 'NL' && (!nlSearch || (p.business_name||'').toLowerCase().includes(nlSearch) || (p.city||'').toLowerCase().includes(nlSearch)));
 
   document.getElementById('archivesNotInterestedCount').textContent = notInterested.length + ' contact' + (notInterested.length !== 1 ? 's' : '');
-  document.getElementById('archivesHasWebCount').textContent = hasWebsite.length + ' contact' + (hasWebsite.length !== 1 ? 's' : '');
+  document.getElementById('archivesNoResultCount').textContent = noResult.length + ' contact' + (noResult.length !== 1 ? 's' : '');
+  const nlCountEl = document.getElementById('archivesNLCount');
+  if (nlCountEl) nlCountEl.textContent = nlProspects.length + ' prospect' + (nlProspects.length !== 1 ? 's' : '');
 
   const renderArchiveList = (list) => {
     if (!list.length) return '<div class="empty" style="padding:2rem"><p>Aucun contact</p></div>';
@@ -2440,7 +2906,9 @@ function loadArchives() {
   };
 
   document.getElementById('archivesNotInterested').innerHTML = renderArchiveList(notInterested);
-  document.getElementById('archivesHasWebsite').innerHTML = renderArchiveList(hasWebsite);
+  document.getElementById('archivesNoResult').innerHTML = renderArchiveList(noResult);
+  const nlListEl = document.getElementById('archivesNLList');
+  if (nlListEl) nlListEl.innerHTML = renderArchiveList(nlProspects);
 
   // Update badge
   const total = allProspects.filter(p => ARCHIVED_STATUSES.includes(p.status)).length;
@@ -2488,7 +2956,7 @@ async function loadHistory() {
 
   const el = document.getElementById('historyList');
   if (!allCalls.length) { el.innerHTML = '<div class="empty"><div class="icon">📋</div><p>Aucun appel</p></div>'; return; }
-  const statusLabel = { no_answer:'Pas répondu', not_interested:'Pas intéressé', callback:'Rappeler', meeting_booked:'RDV décroché !', voicemail:'Messagerie', interested:'Intéressé' };
+  const statusLabel = { no_answer:'Pas répondu', not_interested:'Pas intéressé', has_website:'Déjà un site web', no_result:'Abouti à rien', callback:'Rappeler', meeting_booked:'RDV décroché !', voicemail:'Messagerie', interested:'Intéressé' };
   const statusIcons = { no_answer:'📵', not_interested:'🚫', callback:'⏰', meeting_booked:'🎯', voicemail:'📬', interested:'👍' };
   el.innerHTML = '<div class="call-history">' + allCalls.map(c => `
     <div class="call-item ${c.status}" onclick="openDetail('${c.prospect_id}')" style="cursor:pointer">
@@ -2631,6 +3099,302 @@ async function moveToPipeline(newStatus) {
 }
 
 // ══════════════════════════════════════════
+//  UNIVERSAL CSV IMPORT
+// ══════════════════════════════════════════
+async function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  const text = await file.text();
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) { toast('CSV vide ou invalide', 'error'); return; }
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+  const colMap = {
+    business_name: ['nom','name','business_name','entreprise','société'],
+    phone: ['téléphone','telephone','phone','tel','tél'],
+    address: ['adresse','address','rue','street'],
+    city: ['ville','city','localité'],
+    sector: ['secteur','sector','activité','activite'],
+    email: ['email','mail','e-mail'],
+    contact_name: ['contact','contact_name','nom_contact','prénom','prenom'],
+    notes: ['notes','note','commentaire']
+  };
+  const getCol = (field) => {
+    const aliases = colMap[field] || [field];
+    for (const alias of aliases) {
+      const idx = headers.findIndex(h => h === alias || h.includes(alias));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+  const cols = {};
+  Object.keys(colMap).forEach(f => { cols[f] = getCol(f); });
+  if (cols.business_name === -1) { toast('Colonne "nom" introuvable dans le CSV', 'error'); return; }
+  const rows = lines.slice(1).map(line => {
+    const cells = line.split(',').map(c => c.trim().replace(/^"|"$/g,''));
+    const obj = {};
+    Object.entries(cols).forEach(([field, idx]) => { if (idx !== -1 && cells[idx]) obj[field] = cells[idx]; });
+    return obj;
+  }).filter(r => r.business_name);
+  if (!rows.length) { toast('Aucune ligne valide dans le CSV', 'error'); return; }
+  const existingNames = new Set(allProspects.map(p => p.business_name.toLowerCase()));
+  const existingPhones = new Set(allProspects.filter(p=>p.phone).map(p => p.phone.replace(/\D/g,'')));
+  const existingAddresses = new Set(allProspects.filter(p=>p.address).map(p => p.address.toLowerCase().replace(/\s+/g,'')));
+  const toInsert = rows.filter(r => {
+    if (existingNames.has(r.business_name.toLowerCase())) return false;
+    if (r.phone && existingPhones.has(r.phone.replace(/\D/g,''))) return false;
+    if (r.address && existingAddresses.has(r.address.toLowerCase().replace(/\s+/g,''))) return false;
+    return true;
+  });
+  if (!toInsert.length) { toast('Tous ces prospects sont déjà dans le CRM (nom, téléphone ou adresse)', ''); return; }
+  if (!confirm(`Importer ${toInsert.length} nouveaux prospects depuis "${file.name}" ?`)) return;
+  const base = { status: 'to_call', has_website: false, created_by: currentUser, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+  if (sb) {
+    const { error } = await sb.from('prospects').insert(toInsert.map(r => ({ ...base, ...r })));
+    if (error) { toast('Erreur import: ' + error.message, 'error'); return; }
+  } else {
+    toInsert.forEach(r => allProspects.unshift({ id: crypto.randomUUID(), calls: [], ...base, ...r }));
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  toast(`✅ ${toInsert.length} prospects importés !`, 'success');
+  await loadAll();
+}
+
+// ══════════════════════════════════════════
+//  SEED ÉLECTRICIENS FR (Pages 51-100)
+// ══════════════════════════════════════════
+const ELEC_FR_P51_100 = [
+  {business_name:'L.D. PRO',address:'Vinâve 23',city:'Battice',phone:'+3243793712',sector:'Électricité'},
+  {business_name:'HUBERLAND FRANCOIS',address:'Place Colignon 15',city:'Schaerbeek',phone:'+32474079329',sector:'Électricité'},
+  {business_name:'EGEMS',address:'Rue Jean Ligny 83',city:'Goutroux (Charleroi)',phone:'+3271521445',sector:'Électricité'},
+  {business_name:'Jacquemin Gilles',address:'Rue de la Lesse 1',city:'Houyet',phone:'+3282666335',sector:'Électricité'},
+  {business_name:'Mary Florian',address:"Rue de l'Harmonie 3",city:'Haine-Saint-Pierre',phone:'+32471913384',sector:'Électricité'},
+  {business_name:'DE RIDDER LUC',address:'Rue Al Virée 28',city:'Flamierge',phone:'+3261267650',sector:'Électricité'},
+  {business_name:'Dehuy Thimotée',address:'Rue des Chasseurs Ardennais 2',city:'Saint-Hubert',phone:'+3261613720',sector:'Électricité'},
+  {business_name:'PRélec.',address:'Rue Philippe le Bon 36',city:'Mouscron',phone:'+3256346308',sector:'Électricité'},
+  {business_name:'Electro Depanik',address:'Rue de la Ferme 44',city:'Gembloux',phone:'+32472898286',sector:'Électricité'},
+  {business_name:'Martin Guillaume',address:'Rue des Faubourgs 14a',city:'Vresse-sur-Semois',phone:'+3261658840',sector:'Électricité'},
+  {business_name:'DROPSY JONATHAN',address:'Rue du Bailet 1',city:'Tenneville',phone:'+3284468695',sector:'Électricité'},
+  {business_name:'Néo Electricité - Florian Turi',address:'Rue du Suzery 204H',city:'Hastière',phone:'+32479809046',sector:'Électricité'},
+  {business_name:'Dominique Descamps',address:'Rue Saint-Martin 63/22',city:'Tournai',phone:'+3225242832',sector:'Électricité'},
+  {business_name:'AVE Elec',address:'Rue Akarova 35/6',city:'Ixelles',phone:'+32477351099',sector:'Électricité'},
+  {business_name:'TKTTNUL',address:'Rue des Déportés 95',city:'Tubize',phone:'+32474780787',sector:'Électricité'},
+  {business_name:'LAZOU SIMON',address:'Rue de Rhisnes 31',city:'La Bruyère',phone:'+3256190565',sector:'Électricité'},
+  {business_name:'SLGT',address:'Rue de Rhisnes 31',city:'La Bruyère',phone:'+32491112999',sector:'Électricité'},
+  {business_name:'INFICARE SERVICE',address:'Rue du Vieux Comptoir 71',city:'Xhendelesse (Herve)',phone:'+3287336100',sector:'Électricité'},
+  {business_name:'Elecyou',address:'Rue Charles Heuze 65/10',city:'Auvelais (Sambreville)',phone:'+32471796841',sector:'Électricité'},
+  {business_name:'DETHIER LOIC',address:'Rue du Haut Baty 612',city:'Vezin (Andenne)',phone:'+32472450694',sector:'Électricité'},
+  {business_name:'EENTECH',address:'Rue Verte 245',city:'Schaerbeek',phone:'+3222031304',sector:'Électricité'},
+  {business_name:'SOCIETE MOMENTANEE PUTMAN COLLIGNON',address:'Rue Henri-Joseph Genesse 30',city:'Anderlecht',phone:'+3225110690',sector:'Électricité'},
+  {business_name:'Jean-Christophe Evrard',address:'Rue des XII Hommes 22',city:'Louveigné (Sprimont)',phone:'+32495506933',sector:'Électricité'},
+  {business_name:'CORNELIS Yannick',address:'Rue de la Station 69',city:'Momalle (Remicourt)',phone:'+32479423368',sector:'Électricité'},
+  {business_name:'DEGOEDT VINCENT',address:'Rue des Forges 62',city:'Anseremme (Dinant)',phone:'+32479751883',sector:'Électricité'},
+  {business_name:'Cono',address:"Avenue de l'Enseignement 15",city:'Saint-Ghislain',phone:'+3265793550',sector:'Électricité'},
+  {business_name:'GALANELEC',address:"Rue Al'Trappe 60",city:'Alleur (Ans)',phone:'',sector:'Électricité'},
+  {business_name:'DCA ELEC',address:"Rue de l'Avenir 11",city:'Piéton (Chapelle-lez-Herlaimont)',phone:'+32496546845',sector:'Électricité'},
+  {business_name:'Fabio Concept',address:'Clos des Ramées 34',city:'Mouscron',phone:'',sector:'Électricité'},
+  {business_name:'GEORGE ELEC',address:'Quai des Tanneurs 17/1',city:'Liège',phone:'',sector:'Électricité'},
+  {business_name:'VOLTE PHASE',address:'Rue Jean Doye 14',city:'Thuin',phone:'+32496921496',sector:'Électricité'},
+  {business_name:'Van Eldom',address:'Rue de Chession 19',city:'Onhaye',phone:'+32491873098',sector:'Électricité'},
+  {business_name:'ABRA ELEC',address:'Avenue Odon Warland 110/3g/l',city:'Jette',phone:'+32487414376',sector:'Électricité'},
+  {business_name:'Refrégier Logan',address:'Cour des Usines 3C',city:'Walcourt',phone:'+32474435519',sector:'Électricité'},
+  {business_name:'D.G.E. ENERGY FACILITIES MANAGEMENT',address:'Rue Saint-Sang 108',city:'Morlanwelz',phone:'+32495825835',sector:'Électricité'},
+  {business_name:'THONNARD Christopher',address:"Rue de l'Eglise 19",city:'Bassenge',phone:'+32493444851',sector:'Électricité'},
+  {business_name:'ELECTRICITE DA SILVA CRAVO',address:'Rue Théodore Verhaegen 196-202/414',city:'Saint-Gilles',phone:'+32475879749',sector:'Électricité'},
+  {business_name:'Bontemps Philippe',address:'Rue du Bourzy 1',city:'Léglise',phone:'+3263220160',sector:'Électricité'},
+  {business_name:'AZEG',address:'Rue du Fondry 49',city:'Rognée (Walcourt)',phone:'+32471913781',sector:'Électricité'},
+  {business_name:'voltyt',address:'Rue Saint-André 2',city:'Nivelles',phone:'',sector:'Électricité'},
+  {business_name:'Vinche J Ets',address:'Clos Edmond Leclercq 119',city:'Warchin (Tournai)',phone:'+3269212722',sector:'Électricité'},
+  {business_name:'Philippe Hubermont',address:'Rue du Château 12',city:'Halanzy (Aubange)',phone:'+3263423916',sector:'Électricité'},
+  {business_name:'Datalabo',address:'Rue Elskamp 14',city:'Anderlecht',phone:'+32484704708',sector:'Électricité'},
+  {business_name:'HELSMOORTEL VALENTINE',address:'Avenue Louise 367',city:'Bruxelles',phone:'+32474850737',sector:'Électricité'},
+  {business_name:'Gerard',address:"Rue de l'Aérodrome",city:'Jehonville (Bertrix)',phone:'+32497854783',sector:'Électricité'},
+  {business_name:'JVR electricity',address:'Avenue de la Gare 86',city:'Hotton',phone:'+32490565993',sector:'Électricité'},
+  {business_name:'Barbélec',address:'Rue Abbé Matagne 30/G',city:'Évelette (Ohey)',phone:'+32477361359',sector:'Électricité'},
+  {business_name:'Duerinck Serge',address:'Rue de Hèvremont 190',city:'Stembert (Verviers)',phone:'+3242274555',sector:'Électricité'},
+  {business_name:'Remysolutions',address:"Closière de l'Hostellerie 4",city:'Baisy-Thy (Genappe)',phone:'+32475985574',sector:'Électricité'},
+  {business_name:'I.E. Tech Construction',address:'Rue Heyvaert 25/0007',city:'Molenbeek-Saint-Jean',phone:'+32499825564',sector:'Électricité'},
+  {business_name:'Tevel Emeric',address:'Route du Tonnelet 42',city:'Spa',phone:'+3242520949',sector:'Électricité'},
+  {business_name:'MICHEL Hugo',address:'Rue du Sart Thiri 47',city:'Grâce-Hollogne',phone:'+32472926571',sector:'Électricité'},
+  {business_name:'BMD BUSINESS',address:'Rue François Jassogne 3',city:'Andenne',phone:'+3285217811',sector:'Électricité'},
+  {business_name:'SUNRISE TECHNICS',address:'Rue de la Havée 9/2',city:'Braives',phone:'+32496463626',sector:'Électricité'},
+  {business_name:'Eric Vincent',address:'Grand-Trône Alouettes 38',city:'Hastière',phone:'+32476289839',sector:'Électricité'},
+  {business_name:'Urbain Nicolas',address:'Route du Maka 43',city:'Bertrix',phone:'+32495990582',sector:'Électricité'},
+  {business_name:'SDR-Engineering',address:'Rue Phocas Lejeune 25',city:'Gembloux',phone:'+32493510614',sector:'Électricité'},
+  {business_name:'HENDRICK Marcel',address:'Rue Jules Destrée 14',city:'Aiseau-Presles',phone:'+3271761210',sector:'Électricité'},
+  {business_name:'DRISSI Mohamed',address:'Voie Américaine 11',city:'Mons',phone:'+32497272525',sector:'Électricité'},
+  {business_name:'SOLUTIS',address:'Rue de Juplet 3/B',city:'Natoye (Hamois)',phone:'+3283400497',sector:'Électricité'},
+  {business_name:'SPELGATTI JEAN',address:'Rue Henri Delhalle 43/001',city:'Awirs (Flémalle)',phone:'+32477592756',sector:'Électricité'},
+  {business_name:'HBR Electricité Générale',address:'Avenue Guillaume Lefever 12',city:'Auderghem',phone:'+32485257991',sector:'Électricité'},
+  {business_name:'Electro Rom',address:'Rue des Marronniers 8',city:'Battice (Herve)',phone:'+32499833537',sector:'Électricité'},
+  {business_name:'VANHOOVELS MARC',address:'Rue Adolphe Vandenschrieck 55/M/H',city:'Jette',phone:'+32484958612',sector:'Électricité'},
+  {business_name:'JKONNECT',address:'Rue Cocriamont 83',city:'Le Roux (Fosses-la-Ville)',phone:'+32496881985',sector:'Électricité'},
+  {business_name:'S.M. Elec',address:'Rue de Maubeuge 180',city:'Erquelinnes',phone:'+32483313127',sector:'Électricité'},
+  {business_name:'NAESSENS YVES',address:"Vieux Chemin d'Ath 120",city:'Warchin',phone:'+3256912268',sector:'Électricité'},
+  {business_name:'WalloWatt',address:'Rue Benne Brulée 45',city:'Morialmé',phone:'+32493370567',sector:'Électricité'},
+  {business_name:'LAFRUT Michael',address:'Rue de Neuville 39',city:'Francorchamps',phone:'+32495308243',sector:'Électricité'},
+  {business_name:'HUARD ANTOINE',address:'Chemin de la Placquerie 18',city:'Isières',phone:'+32492743996',sector:'Électricité'},
+  {business_name:'WILLE LIONEL',address:'Rue du Chaufour 42',city:'Spy',phone:'+3281728014',sector:'Électricité'},
+  {business_name:'LAURELEC',address:'Rue des Bas Champs 9',city:'Helchin',phone:'+3256448697',sector:'Électricité'},
+  {business_name:'Connexion cycles',address:'Rue du Meunier 2',city:'Nalinnes',phone:'+32472773968',sector:'Électricité'},
+  {business_name:'Oliver invest Belgium',address:'Avenue des Gerfauts 10/42',city:'Watermael-Boitsfort',phone:'+3223549267',sector:'Électricité'},
+  {business_name:'Tgp technics',address:"Rue de l'Aurzie 11",city:'Flawinne',phone:'+32483459664',sector:'Électricité'},
+  {business_name:'BIENAIME Guillaume',address:'Avenue des Sports 14',city:'Chimay',phone:'+32494520813',sector:'Électricité'},
+  {business_name:'IMMO CAST',address:'Rue Georges Truffaut 47',city:'Alleur (Ans)',phone:'+3261239815',sector:'Électricité'},
+  {business_name:'SSM NEWELEC-CLOSE',address:'Rue du Fond des Fourches 23/C',city:'Vottem (Herstal)',phone:'+32490582247',sector:'Électricité'},
+  {business_name:'ELECTRIC CONNECT',address:'Rue de Venise 21/12',city:'Jumet (Charleroi)',phone:'',sector:'Électricité'},
+  {business_name:'JDE',address:'Rue de la Station (RT) 188',city:'Ransart (Charleroi)',phone:'+32490440159',sector:'Électricité'},
+  {business_name:'LICP COMPANY',address:'Rue de Tourinnes 14',city:'Hamme-Mille (Beauvechain)',phone:'+32475373230',sector:'Électricité'},
+  {business_name:'Passagelec',address:'Rue du Faubourg 6/A',city:'Les Bulles (Chiny)',phone:'+32485312879',sector:'Électricité'},
+  {business_name:'Avm-Carlino',address:'Avenue de la Constitution 412',city:'Ganshoren',phone:'+3224281589',sector:'Électricité'},
+  {business_name:'electricité Mahin Gilles',address:'Hamaide 98',city:'Redu (Libin)',phone:'+3261655566',sector:'Électricité'},
+  {business_name:'PGB ELEC',address:'Chaussée de Jodoigne 23',city:'Glimes (Incourt)',phone:'+32477611096',sector:'Électricité'},
+  {business_name:'EDM Technics',address:'Rue de Monplaisir 11D',city:'Cerfontaine',phone:'+32499340016',sector:'Électricité'},
+  {business_name:'DELANNOY MARC',address:'Chaussée Victor Lampe 72',city:'Ollignies (Lessines)',phone:'+3268449647',sector:'Électricité'},
+  {business_name:'Bilanzola Valentino',address:'Rue du Cimetière 1',city:'Beaumont',phone:'+32471772956',sector:'Électricité'},
+  {business_name:'CLAES FERNAND',address:'Rue Longue 102',city:'Piétrain (Jodoigne)',phone:'+3210810744',sector:'Électricité'},
+  {business_name:'ELECTRI+',address:'Noblehaye 142',city:'Bolland (Herve)',phone:'+32499679318',sector:'Électricité'},
+  {business_name:'Jbe-élec',address:'Rue de Heuseux 53',city:'Soumagne',phone:'+32499474905',sector:'Électricité'},
+  {business_name:'VAN HOUTTE ELECTRIC',address:'Avenue Reine Astrid 37',city:'Mouscron',phone:'+32477412519',sector:'Électricité'},
+  {business_name:'Eric de Borman',address:'Rue Fontaine St Jean 40',city:'Engis',phone:'',sector:'Électricité'},
+  {business_name:'Mouss-Services',address:'Rue des Brodeurs 1/b043',city:'Bruxelles',phone:'+32491988527',sector:'Électricité'},
+  {business_name:'STROOBANTS ALEXANDRE',address:'Rue de la Chapelle Saint-Jean 31',city:'Piétrain',phone:'+32495625427',sector:'Électricité'},
+  {business_name:'SIRDEL',address:'Place de Bury 17',city:'Bury',phone:'+32472680810',sector:'Électricité'},
+  {business_name:'PRAGMATIX',address:'Bas Hameau 17',city:'Velaines',phone:'+3269362111',sector:'Électricité'},
+  {business_name:'Tensiohm',address:'Rue de Verdun 66/1',city:'Haren',phone:'+32492227947',sector:'Électricité'},
+  {business_name:'VertiTech',address:'Rue Ferdinand Lenoir 113/1/2',city:'Jette',phone:'+32483370888',sector:'Électricité'},
+  {business_name:'Waeles Alexandre',address:'Rue de la Caserne 14/A',city:'Seilles',phone:'+32495754994',sector:'Électricité'},
+  {business_name:'Maxime Lecoq',address:'Rue de la Laiterie 2/1',city:'Faymonville',phone:'',sector:'Électricité'},
+  {business_name:'HKB TECH',address:'Boulevard de Smet de Naeyer 18',city:'Jette',phone:'',sector:'Électricité'},
+  {business_name:'TILLIEUX MATHIEU',address:'Chemin des Aubépines 1',city:'Neufchâteau',phone:'+32476542038',sector:'Électricité'},
+  {business_name:'Rutten Léon',address:'Rue de Wavre 23D',city:'Chaumont-Gistoux',phone:'+32498711717',sector:'Électricité'},
+  {business_name:'ELCP',address:'Chaussée de Waterloo 756/33',city:'Uccle',phone:'+3222172492',sector:'Électricité'},
+  {business_name:'Rober Kylian',address:'Rue Saint-Martin 79',city:'Vaux-sur-Sûre',phone:'+32470484307',sector:'Électricité'},
+  {business_name:'DEVILLERS JOSE',address:"Rue de la Drêve 26",city:'Clavier',phone:'+3086344144',sector:'Électricité'},
+  {business_name:'Itondo Thierry',address:'Rue Godin 53',city:'Verviers',phone:'+32487606804',sector:'Électricité'},
+  {business_name:'IT4PME',address:'Rue des Dentellières 20/1',city:'Marche-en-Famenne',phone:'+3284367806',sector:'Électricité'},
+  {business_name:'Electri-Louppe',address:'Rue du Meunier 4',city:'Tillet (Sainte-Ode)',phone:'+32475719116',sector:'Électricité'},
+  {business_name:'Luda-Technic',address:'Rue Chapuis 23/1',city:'Sprimont',phone:'+3268752122',sector:'Électricité'},
+  {business_name:'BARBA',address:'Boulevard Lambermont 102/ET 04',city:'Schaerbeek',phone:'+32465938817',sector:'Électricité'},
+  {business_name:'CASTELLANO FRANCOIS',address:'Aux Bidaux 22',city:'Lamorteau (Rouvroy)',phone:'+3263583438',sector:'Électricité'},
+  {business_name:'ZeTech',address:'Rue Waoury 62',city:'Queue-du-Bois (Beyne-Heusay)',phone:'+32465929474',sector:'Électricité'},
+  {business_name:'Le Van Gilles',address:'Rue Croix Jacquet 10',city:'Saint-Aubin (Florennes)',phone:'+3271686193',sector:'Électricité'},
+  {business_name:'Galer Axel',address:'Rue de Mont 33',city:'Braibant (Ciney)',phone:'+3283218910',sector:'Électricité'},
+  {business_name:'DSS GROUP',address:'Rue du Collège 23/5',city:'Tamines (Sambreville)',phone:'+32479473375',sector:'Électricité'},
+  {business_name:'ICONNEXION',address:'Rue du Général Jacques 212',city:'Vaux-sous-Chèvremont (Chaudfontaine)',phone:'+32477733721',sector:'Électricité'},
+  {business_name:'Legros Sébastien',address:'Rue du Touquet 9',city:'Sautin (Sivry-Rance)',phone:'+32477756776',sector:'Électricité'},
+  {business_name:'S.A.N.E.L.E.C.',address:'Bansions 49',city:'Sart (Jalhay)',phone:'+3287661768',sector:'Électricité'},
+  {business_name:'BMTechnologie',address:"Rue du Réservoir d'Eau 21",city:'Achêne (Ciney)',phone:'+32478561981',sector:'Électricité'},
+  {business_name:'LGSolutionselec',address:'Avenue des Sorbiers 75/5',city:'Waterloo',phone:'+3264734490',sector:'Électricité'},
+  {business_name:'LOOSLEBER ELECTRICITE',address:'Rue Grande Bruyère 6C',city:'Welkenraedt',phone:'',sector:'Électricité'},
+  {business_name:'Calitech',address:'Rue Chermont 47',city:'Vaux-sous-Chèvremont (Chaudfontaine)',phone:'+3243581301',sector:'Électricité'},
+  {business_name:'COURAET ALBERT',address:'Rue du Pont des Dames 2',city:'Aische-En-Refail (Eghezée)',phone:'+3271877557',sector:'Électricité'},
+  {business_name:'SERGETEC',address:'Rue des Aiwisses 11',city:'Ville-en-Hesbaye (Braives)',phone:'+3219304018',sector:'Électricité'},
+  {business_name:'Kévin Petit Electricité',address:'Rue des Pèheux 23',city:'Fronville (Hotton)',phone:'+32470970909',sector:'Électricité'},
+  {business_name:'TITAN ELEC',address:'Ruelle des Bois 40',city:'Longueville (Chaumont-Gistoux)',phone:'+32474890805',sector:'Électricité'},
+  {business_name:'CHAMPI ELEC',address:'Rue Richemont 8',city:'Amay',phone:'+32493653148',sector:'Électricité'},
+  {business_name:'JM Elec',address:'Rue de la Vallée 65',city:'Hanret (Eghezée)',phone:'+3281732041',sector:'Électricité'},
+  {business_name:'CAILLOUX Olivier',address:'Rue du Grand Vivier 9',city:"Waret-l'Évêque (Héron)",phone:'+32473619594',sector:'Électricité'},
+  {business_name:'JULINOX',address:'Rue de Presles 37',city:'Villers-Poterie (Gerpinnes)',phone:'+3271125673',sector:'Électricité'},
+  {business_name:'VANOVERBERGHE VAN SIMAEYS',address:'Rue de la Scierie 6',city:'Dottignies (Mouscron)',phone:'',sector:'Électricité'},
+  {business_name:'Peinado Fernandez Manuel',address:'Rue Jean Lefèvre 19',city:'Leval-Trahegnies (Binche)',phone:'+3264334996',sector:'Électricité'},
+  {business_name:'Fairways',address:'Rue Gueulot 4',city:'Ronquières (Braine-le-Comte)',phone:'+3267647941',sector:'Électricité'},
+  {business_name:'PAULUS ANDRE',address:'Bévercé 3',city:'Bevercé',phone:'+3280337983',sector:'Électricité'},
+  {business_name:'Clausse Damien',address:'Rue de Courtel 17',city:'Rulles (Habay)',phone:'+3263411021',sector:'Électricité'},
+  {business_name:'Charron électricité',address:'Vieux Thier de Sprimont 50',city:'Sprimont',phone:'+32498760744',sector:'Électricité'},
+  {business_name:'DELISELEC',address:'Rue Baron Léon de Pierpont 3',city:'Évrehailles (Yvoir)',phone:'+3282615431',sector:'Électricité'},
+  {business_name:'Dambroise Denis',address:'Rue des Juifs 7',city:'Matagne-la-Grande (Doische)',phone:'+3260399011',sector:'Électricité'},
+  {business_name:'C.L. Elec',address:'Clos des Trois Allées 6',city:'Saint-Georges-sur-Meuse',phone:'+3242595026',sector:'Électricité'},
+  {business_name:'FUTURENERGY',address:'Chemin des Alouettes 13',city:'Braives',phone:'+32498596379',sector:'Électricité'},
+  {business_name:'BASTIN YVES',address:'Ernonheid-Village 72',city:'Aywaille',phone:'+32474330993',sector:'Électricité'},
+  {business_name:'KLELS ML',address:'Rue de la Fontinelle',city:'Bertrix',phone:'+3261414323',sector:'Électricité'},
+  {business_name:'VECTURA',address:'Rue du 8 Mai 23',city:'Saint-Nicolas',phone:'+3242431254',sector:'Électricité'},
+  {business_name:'Sergio ALARIO',address:'Haut-Vinâve 27',city:'Jalhay',phone:'+3287681711',sector:'Électricité'},
+  {business_name:'Gilbert',address:'Rue de Thoricourt 11',city:'Enghien',phone:'+3224206134',sector:'Électricité'},
+  {business_name:'BATISTA DE MORAIS ALEXSANDER',address:'Avenue Normande 12/101',city:'Rixensart',phone:'+32465291302',sector:'Électricité'},
+  {business_name:'EFH',address:'Rue des Martyrs 5',city:'Herstal',phone:'+3243586879',sector:'Électricité'},
+  {business_name:'FDG',address:'Rue Joseph Wauters 28',city:'Liège',phone:'+3243719171',sector:'Électricité'},
+  {business_name:'FRANCOIS STEPHANE',address:'Ernonheid-Village 70',city:'Aywaille',phone:'+3086322178',sector:'Électricité'},
+  {business_name:'FPI-MANAGEMENT',address:"Rue de l'Entreprise 15",city:'Villers-le-Bouillet',phone:'+32495105796',sector:'Électricité'},
+  {business_name:'ALARIO Noé',address:'Rue Longue B',city:'Baelen',phone:'+32478689572',sector:'Électricité'},
+  {business_name:'DELCATELEC',address:'Rue de la Bouteillerie ZN',city:'Thirimont (Beaumont)',phone:'+32498138833',sector:'Électricité'},
+  {business_name:'BOURGAUX JOSE',address:"Rue d'en Haut 6/7",city:'Opprebais (Incourt)',phone:'+3210650780',sector:'Électricité'},
+  {business_name:'DEFAYS Jean-Yves',address:'Rue de Clémodeau 180/C',city:'Villers-le-Temple (Nandrin)',phone:'+32473897594',sector:'Électricité'},
+  {business_name:'SOCIETE COMMERCIALE DU BRUN CHENE',address:'Rue des Fougères 59',city:'Couillet (Charleroi)',phone:'+32491083065',sector:'Électricité'},
+  {business_name:'DNP ELECTRICITE',address:'Rue de Charleroi 38',city:'Courcelles',phone:'+3271453934',sector:'Électricité'},
+  {business_name:'MARCEL GERARD ET FILS',address:'Rue de la Station 64',city:'Blaton (Bernissart)',phone:'+3269561175',sector:'Électricité'},
+  {business_name:'SD Elec',address:'Chaussée de Liège 58/A',city:'Amay',phone:'+32477329333',sector:'Électricité'},
+  {business_name:'Kitiko Elec',address:'Rue Goor 25',city:'Charleroi',phone:'+32473801073',sector:'Électricité'},
+  {business_name:'XTS',address:'Rue Voie de Liège 15',city:'Oupeye',phone:'+32470108393',sector:'Électricité'},
+  {business_name:'N.I.ELECTRO STRATEGY',address:'Chaussée de Vilvorde 80/7D',city:'Neder-over-Heembeek (Bruxelles)',phone:'+3222426022',sector:'Électricité'},
+  {business_name:'S & C ELECTRICITE',address:'Rue de la Clinique 170',city:'Anderlecht',phone:'+32473691119',sector:'Électricité'},
+  {business_name:'MDAutomElec',address:'Clos du Mélèze 5',city:"Braine-l'Alleud",phone:'+32473562400',sector:'Électricité'},
+  {business_name:'Electricité générale DENONCIN Maxime',address:'Rue du Wez 15',city:'Paliseul',phone:'+32496391674',sector:'Électricité'},
+  {business_name:'HYDROLEC',address:'Avenue Jean-François Debecker 20',city:'Woluwe-Saint-Lambert',phone:'+3227721771',sector:'Électricité'},
+  {business_name:'AGEBI',address:'Petite Rue Saint-Lambert 7',city:'Jodoigne',phone:'+3210761025',sector:'Électricité'},
+  {business_name:'STOCK SEBASTIEN',address:'Rue des Chasseurs Ardennais 52',city:'Sainte-Ode',phone:'+3086455999',sector:'Électricité'},
+  {business_name:'DAURY BERTRAND',address:'Ancien Chemin de Wellin 107/G',city:'Haut-Fays',phone:'+32475378154',sector:'Électricité'},
+  {business_name:'LUC AQUALEC',address:"Rue d'Orgeo 12",city:'Saint-Médard',phone:'+3261414852',sector:'Électricité'},
+  {business_name:'JF ELECTRICITE',address:'Rue Neuve 7',city:'Philippeville',phone:'+3271612923',sector:'Électricité'},
+  {business_name:'CODUTI CARLO',address:'Rue de Suzin 9',city:'Rochefort',phone:'+3284210241',sector:'Électricité'},
+  {business_name:'Ci & Ci',address:'Clos Fredman 20',city:'Juprelle',phone:'+3242755485',sector:'Électricité'},
+  {business_name:'K. Goessens',address:'Zoning ouest 26',city:'Lessines',phone:'+3268860448',sector:'Électricité'},
+  {business_name:'MOC-A.T',address:'Rue du Commandant Naessens 41',city:"Villers-l'Évêque (Awans)",phone:'+32472527112',sector:'Électricité'},
+  {business_name:'DCELEC & PLUS',address:'Rue Alphonse Wauters 2/AB',city:'Bruxelles',phone:'+32496396919',sector:'Électricité'},
+  {business_name:'SSM WEL Energy',address:'Boulevard du Roi Albert II 19',city:'Saint-Josse-ten-Noode',phone:'+32478312916',sector:'Électricité'},
+  {business_name:'ELECTRICITE HERBECQ PH',address:'Paradis 58',city:'Ellezelles',phone:'+3268445114',sector:'Électricité'},
+  {business_name:'MALCHAIR ELECTRICITE',address:'Rue derrière les Jardins 39',city:'Visé',phone:'+3242721699',sector:'Électricité'},
+  {business_name:'STF',address:'Rue Arbre à Limont 5',city:'Lessines',phone:'+32477725484',sector:'Électricité'},
+  {business_name:'WEELEN MARC',address:'Rue du Pansy 149',city:'Saint-Nicolas',phone:'+3243847300',sector:'Électricité'},
+  {business_name:'JB Concept',address:'Rue Jean Colas',city:'Chimay',phone:'+3260241046',sector:'Électricité'},
+  {business_name:'SOTRATECH',address:'Rue des Hadrennes 3',city:'Wanze',phone:'+3243783193',sector:'Électricité'},
+  {business_name:'Velghe Antoine',address:'Rue des Primevères 13',city:'Mouscron',phone:'+32472710914',sector:'Électricité'},
+  {business_name:'ELECTROMONTAGE',address:'Zone artisanal de la Rivièrette 67',city:'Saint-Ghislain',phone:'+32478959201',sector:'Électricité'},
+  {business_name:'GAV ELECTROCONSTRUCT',address:'Rue Victor Rauter 193',city:'Anderlecht',phone:'+3225211051',sector:'Électricité'},
+  {business_name:"Quentin l'Electricien",address:"Chaussée d'Alsemberg 265",city:'Forest',phone:'+3225388499',sector:'Électricité'},
+  {business_name:'MILIOTO ELECTRICITE',address:'Chemin des Dames 310',city:'Braine-le-Comte',phone:'+3267843283',sector:'Électricité'},
+  {business_name:'EVOLT',address:'Rue des Remparts 7/1',city:'Fosses-la-Ville',phone:'+32498014341',sector:'Électricité'},
+  {business_name:'Pi-Code',address:'Coron des Indes 19',city:'Courcelles',phone:'+32497860387',sector:'Électricité'},
+  {business_name:'A.N. Electricité',address:'Chaussée de Mons 137',city:'Seneffe',phone:'+3264605651',sector:'Électricité'},
+  {business_name:'ALLMATIC DALLMAYR BELGIUM',address:'Parc Industriel 22',city:'Braine-le-Château',phone:'+3223568034',sector:'Électricité'},
+  {business_name:'NOVAK GROUP',address:'Avenue de la Liberté 175',city:'Molenbeek-Saint-Jean',phone:'+3224601743',sector:'Électricité'},
+  {business_name:'RAIN WORLD',address:"Avenue de l'Exposition Universelle 14",city:'Ganshoren',phone:'+3222703138',sector:'Électricité'},
+  {business_name:'Christiaens Peter',address:'Chemin du Renard 26',city:"Mont-de-l'Enclus",phone:'+3256190703',sector:'Électricité'},
+  {business_name:'ELECTRIC PHIL',address:'Rue du Blanc Pain 8',city:'La Louvière',phone:'+3264602301',sector:'Électricité'},
+  {business_name:'CAR CONTROL',address:'Rue de la Spaumerie 24b/B',city:'Saint-Denis (La Bruyère)',phone:'+32479727110',sector:'Électricité'},
+  {business_name:'GMA CONCEPT',address:"Rue Autre Côté de l'Eau 4",city:'Olloy-sur-Viroin (Viroinval)',phone:'+32484257452',sector:'Électricité'},
+  {business_name:"ELEC D'OULTREMONT",address:'Chemin de Messe 6',city:'Vieux-Genappe (Genappe)',phone:'+32472262004',sector:'Électricité'},
+  {business_name:'A B E',address:'Rue de la Fonderie 22',city:'Fleurus',phone:'+32483402117',sector:'Électricité'},
+  {business_name:'Inventive telecom Partners',address:'Avenue Fleming 12',city:'Wavre',phone:'+3210756003',sector:'Électricité'},
+  {business_name:'Axel Genetelli',address:'La Petite Campagne 11',city:'Nil-Saint-Vincent-Saint-Martin (Walhain)',phone:'+32474869703',sector:'Électricité'},
+];
+
+async function seedElecFR() {
+  if (!confirm(`Importer ${ELEC_FR_P51_100.length} électriciens FR (pages 51-100) — doublons ignorés automatiquement ?`)) return;
+  const existingNames = new Set(allProspects.map(p => p.business_name.toLowerCase()));
+  const existingPhones = new Set(allProspects.filter(p=>p.phone).map(p => p.phone.replace(/\D/g,'')));
+  const existingAddresses = new Set(allProspects.filter(p=>p.address).map(p => p.address.toLowerCase().replace(/\s+/g,'')));
+  const toInsert = ELEC_FR_P51_100.filter(r => {
+    if (existingNames.has(r.business_name.toLowerCase())) return false;
+    if (r.phone && existingPhones.has(r.phone.replace(/\D/g,''))) return false;
+    if (r.address && existingAddresses.has(r.address.toLowerCase().replace(/\s+/g,''))) return false;
+    return true;
+  });
+  if (!toInsert.length) { toast('Tous ces électriciens sont déjà dans le CRM', ''); return; }
+  const base = { status:'to_call', has_website:false, created_by:currentUser, created_at:new Date().toISOString(), updated_at:new Date().toISOString() };
+  if (sb) {
+    const rows = toInsert.map(({ address, ...r }) => ({ ...base, ...r, notes: address || undefined }));
+    const { error } = await sb.from('prospects').insert(rows);
+    if (error) { toast('Erreur import: ' + error.message, 'error'); return; }
+  } else {
+    toInsert.forEach(r => allProspects.unshift({ id: crypto.randomUUID(), calls:[], ...base, ...r }));
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  toast(`✅ ${toInsert.length} électriciens importés (${ELEC_FR_P51_100.length - toInsert.length} doublons ignorés)`, 'success');
+  await loadAll();
+}
+
+// ══════════════════════════════════════════
 //  SEED PROSPECTS JODOIGNE
 // ══════════════════════════════════════════
 const JODOIGNE_PROSPECTS = [
@@ -2678,8 +3442,9 @@ const JODOIGNE_PROSPECTS = [
 
 async function seedJodoigne() {
   if (!confirm(`Importer ${JODOIGNE_PROSPECTS.length} artisans/commerçants de Jodoigne ?`)) return;
-  const existingNames = allProspects.map(p => p.business_name.toLowerCase());
-  const toInsert = JODOIGNE_PROSPECTS.filter(p => !existingNames.includes(p.business_name.toLowerCase()));
+  const existingNames = new Set(allProspects.map(p => p.business_name.toLowerCase()));
+  const existingPhones = new Set(allProspects.filter(p=>p.phone).map(p=>p.phone.replace(/\D/g,'')));
+  const toInsert = JODOIGNE_PROSPECTS.filter(p => !existingNames.has(p.business_name.toLowerCase()) && !(p.phone && existingPhones.has(p.phone.replace(/\D/g,''))));
   if (!toInsert.length) { toast('Tous ces prospects sont déjà dans le CRM', ''); return; }
   const base = { status: 'to_call', created_by: currentUser, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
   if (sb) {
@@ -3087,6 +3852,235 @@ async function loadKPI() {
     </div>`;
 
   renderBarChart('kpiBarChart', chartData);
+}
+
+// ══════════════════════════════════════════
+//  SPRINT MODE
+// ══════════════════════════════════════════
+
+function detectLangue(p) {
+  const text = ((p.address || '') + ' ' + (p.city || '')).toLowerCase();
+  if (/\b(straat|laan|steenweg|weg|plein|dijk|dreef|wijk|baan|berg|hoek|dorp|veld|brug|hof)\b/.test(text)) return 'NL';
+  if (/\b(rue|avenue|chemin|route|boulevard|chauss[eé]e|place|impasse|all[eé]e|dr[eè]ve|clos|sentier|voie)\b/.test(text)) return 'FR';
+  const nlCities = /\b(antwerp|gent|brugge|leuven|mechelen|hasselt|genk|aalst|kortrijk|roeselare|izegem|maasmechelen|kortemark)\b/i;
+  if (nlCities.test(p.city || '')) return 'NL';
+  return 'FR';
+}
+
+function buildSprintQueue(sectorFilter, langueFilter) {
+  const now = new Date();
+  return allProspects
+    .filter(p => {
+      if (!['to_call','no_answer','callback'].includes(p.status)) return false;
+      if (sectorFilter && p.sector !== sectorFilter) return false;
+      if (langueFilter && detectLangue(p) !== langueFilter) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const langA = detectLangue(a) === 'FR' ? 10 : 0;
+      const langB = detectLangue(b) === 'FR' ? 10 : 0;
+      const scoreA = (a.status==='callback' && a.callback_time && new Date(a.callback_time)<now ? 100 : a.status==='callback' ? 70 : a.status==='no_answer' ? 40 : 10) + (a.verified ? 20 : 0) + langA;
+      const scoreB = (b.status==='callback' && b.callback_time && new Date(b.callback_time)<now ? 100 : b.status==='callback' ? 70 : b.status==='no_answer' ? 40 : 10) + (b.verified ? 20 : 0) + langB;
+      return scoreB - scoreA;
+    });
+}
+
+function startSprintMode() {
+  const sectors = [...new Set(allProspects.filter(p => ['to_call','no_answer','callback'].includes(p.status) && p.sector).map(p => p.sector))].sort();
+  const sel = document.getElementById('sprintSectorFilter');
+  sel.innerHTML = '<option value="">Tous</option>' + sectors.map(s => `<option value="${s}">${s}</option>`).join('');
+  const candidates = buildSprintQueue('', 'FR');
+  if (!candidates.length) { toast('Aucun prospect à appeler !', ''); return; }
+  _sprintQueue = candidates;
+  _sprintIndex = 0;
+  _sprintDone = 0;
+  document.getElementById('sprintMode').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  renderSprintCard();
+}
+
+function applySprintFilters() {
+  const sector = document.getElementById('sprintSectorFilter').value;
+  const langue = document.getElementById('sprintLangueFilter').value;
+  const candidates = buildSprintQueue(sector, langue);
+  if (!candidates.length) { toast('Aucun prospect pour ces filtres', ''); return; }
+  _sprintQueue = candidates;
+  _sprintIndex = 0;
+  _sprintDone = 0;
+  renderSprintCard();
+}
+
+function applySectorFilter() { applySprintFilters(); }
+
+function exitSprintMode() {
+  document.getElementById('sprintMode').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function renderSprintCard() {
+  if (_sprintIndex >= _sprintQueue.length) {
+    document.getElementById('sprintCard').innerHTML = '<div style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:0.5rem">🎉</div><div style="font-weight:700;font-size:1.1rem;color:var(--text)">Sprint terminé !</div><div style="color:var(--text-muted);margin-top:0.4rem">' + _sprintDone + ' appels effectués</div></div>';
+    document.getElementById('sprintCounter').textContent = 'Terminé — ' + _sprintDone + ' appels';
+    document.getElementById('sprintBar').style.width = '100%';
+    return;
+  }
+  const p = _sprintQueue[_sprintIndex];
+  currentSprintProspectId = p.id;
+  currentProspectId = p.id;
+  document.getElementById('sprintComment').value = '';
+  const total = _sprintQueue.length;
+  document.getElementById('sprintCounter').textContent = (_sprintIndex+1) + ' / ' + total + ' prospects';
+  document.getElementById('sprintBar').style.width = Math.round(_sprintIndex/total*100) + '%';
+  const isStale = p.status==='callback' && p.callback_time && new Date(p.callback_time)<new Date();
+  const googleQuery = encodeURIComponent((p.business_name + ' ' + (p.city||'')).trim());
+  document.getElementById('sprintCard').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.7rem">
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">${statusBadge(p.status)}${isStale ? '<span style="color:#EF4444;font-size:0.8rem">🔴 En retard</span>' : ''}</div>
+      <a href="https://www.google.com/search?q=${googleQuery}" target="_blank" title="Chercher sur Google" style="font-size:1.1rem;text-decoration:none;opacity:0.5;transition:opacity 0.15s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">🔍</a>
+    </div>
+    <div style="font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:0.3rem">${p.business_name}</div>
+    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.9rem">${[p.city,p.sector].filter(Boolean).join(' · ')}<span style="margin-left:0.5rem;font-size:0.7rem;padding:2px 7px;border-radius:20px;background:${detectLangue(p)==='FR'?'rgba(37,99,235,0.12)':'rgba(249,115,22,0.12)'};color:${detectLangue(p)==='FR'?'#1d4ed8':'#c2410c'};font-weight:600">${detectLangue(p)}</span></div>
+    ${p.phone ? `<a href="tel:${p.phone}" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:1.1rem;font-weight:700;color:var(--accent-h);text-decoration:none;background:var(--surface2);padding:0.6rem 1rem;border-radius:10px">📞 ${p.phone}</a>` : '<div style="color:var(--text-muted)">Pas de numéro</div>'}
+    ${p.notes ? `<div style="margin-top:0.7rem;padding:0.5rem 0.8rem;background:var(--surface2);border-radius:8px;font-size:0.78rem;color:var(--text-soft)">${p.notes}</div>` : ''}
+    ${p.calls && p.calls.length ? `<div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted)">📞 ${p.calls.length} tentative${p.calls.length>1?'s':''} précédente${p.calls.length>1?'s':''}</div>` : ''}
+  `;
+}
+
+async function sprintLog(status) {
+  const comment = document.getElementById('sprintComment').value.trim();
+  const dt = new Date().toISOString();
+  const call = { prospect_id: currentSprintProspectId, called_by: currentUser, called_at: dt, status, callback_time: null, comment: comment || null };
+  if (sb) {
+    await sb.from('calls').insert(call);
+    await sb.from('prospects').update({ status, callback_time: null, updated_at: dt }).eq('id', currentSprintProspectId);
+  } else {
+    const p = allProspects.find(x => x.id === currentSprintProspectId);
+    if (p) { if (!p.calls) p.calls=[]; p.calls.push({id:crypto.randomUUID(),...call}); p.status=status; p.callback_time=null; }
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  _sprintDone++;
+  if (status === 'meeting_booked') launchConfetti();
+  toast(status === 'meeting_booked' ? '🎯 RDV décroché !' : 'Logué ✓', status === 'meeting_booked' ? 'success' : '');
+  await loadAll();
+  _sprintIndex++;
+  renderSprintCard();
+}
+
+async function sprintCallback() {
+  _sprintCallbackMode = true;
+  openCallbackPicker();
+}
+
+function sprintSkip() {
+  _sprintIndex++;
+  renderSprintCard();
+}
+
+// ══════════════════════════════════════════
+//  VERIFICATION MODE
+// ══════════════════════════════════════════
+let _verifyQueue = [];
+let _verifyIndex = 0;
+let _verifyDone = 0;
+let _currentVerifyId = null;
+let _verifyLanguage = null;
+
+function setVerifyLanguage(lang) {
+  _verifyLanguage = lang;
+  const btnFR = document.getElementById('verifyLangFR');
+  const btnNL = document.getElementById('verifyLangNL');
+  const btnClear = document.getElementById('verifyLangClear');
+  if (!btnFR) return;
+  btnFR.style.borderColor   = lang === 'FR' ? '#2563EB' : 'var(--border)';
+  btnFR.style.background    = lang === 'FR' ? 'rgba(37,99,235,0.12)' : 'var(--surface)';
+  btnFR.style.color         = lang === 'FR' ? '#2563EB' : 'var(--text-muted)';
+  btnNL.style.borderColor   = lang === 'NL' ? '#DC2626' : 'var(--border)';
+  btnNL.style.background    = lang === 'NL' ? 'rgba(220,38,38,0.1)' : 'var(--surface)';
+  btnNL.style.color         = lang === 'NL' ? '#DC2626' : 'var(--text-muted)';
+  btnClear.style.display    = lang ? 'inline-block' : 'none';
+}
+
+function startVerifyMode() {
+  _verifyQueue = allProspects.filter(p => !p.verified && p.status === 'to_call');
+  if (!_verifyQueue.length) { toast('Tous les prospects sont déjà vérifiés !', 'success'); return; }
+  _verifyIndex = 0;
+  _verifyDone = 0;
+  document.getElementById('verifyMode').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  renderVerifyCard();
+}
+
+function exitVerifyMode() {
+  document.getElementById('verifyMode').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function renderVerifyCard() {
+  if (_verifyIndex >= _verifyQueue.length) {
+    document.getElementById('verifyCard').innerHTML = '<div style="text-align:center;padding:2rem"><div style="font-size:2.5rem;margin-bottom:0.5rem">✅</div><div style="font-weight:700;font-size:1.1rem;color:var(--text)">Vérification terminée !</div><div style="color:var(--text-muted);margin-top:0.4rem">' + _verifyDone + ' prospects vérifiés</div></div>';
+    document.getElementById('verifyCounter').textContent = 'Terminé — ' + _verifyDone + ' vérifiés';
+    document.getElementById('verifyBar').style.width = '100%';
+    return;
+  }
+  const p = _verifyQueue[_verifyIndex];
+  _currentVerifyId = p.id;
+  document.getElementById('verifyUrlInput').value = p.website_url || '';
+  const total = _verifyQueue.length;
+  document.getElementById('verifyCounter').textContent = (_verifyIndex+1) + ' / ' + total + ' à vérifier';
+  document.getElementById('verifyBar').style.width = Math.round(_verifyIndex/total*100) + '%';
+  // Pré-sélectionner la langue si déjà enregistrée sur le prospect
+  if (p.language && !_verifyLanguage) setVerifyLanguage(p.language);
+  const langBadge = p.language
+    ? '<span style="padding:0.15rem 0.55rem;border-radius:99px;font-size:0.72rem;font-weight:700;background:' + (p.language==='FR'?'rgba(37,99,235,0.12)':'rgba(220,38,38,0.1)') + ';color:' + (p.language==='FR'?'#2563EB':'#DC2626') + '">' + (p.language==='FR'?'🇫🇷':'🇧🇪') + ' ' + p.language + '</span>'
+    : '';
+  const googleQuery = encodeURIComponent((p.business_name + ' ' + (p.city||'')).trim());
+  document.getElementById('verifyCard').innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">' +
+      '<div style="display:flex;align-items:center;gap:0.5rem">' +
+        '<div style="font-size:1.2rem;font-weight:800;color:var(--text)">' + p.business_name + '</div>' +
+        langBadge +
+      '</div>' +
+      '<a href="https://www.google.com/search?q=' + googleQuery + '" target="_blank" title="Chercher sur Google" style="font-size:1.1rem;text-decoration:none;opacity:0.5;transition:opacity 0.15s" onmouseover="this.style.opacity=\'1\'" onmouseout="this.style.opacity=\'0.5\'">🔍</a>' +
+    '</div>' +
+    '<div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem">' + [p.city,p.sector].filter(Boolean).join(' · ') + '</div>' +
+    (p.phone ? '<div style="font-size:0.85rem;color:var(--accent-h);font-weight:600">📞 ' + p.phone + '</div>' : '') +
+    (p.website_url ? '<div style="margin-top:0.4rem"><a href="' + p.website_url + '" target="_blank" style="font-size:0.78rem;color:var(--green)">' + p.website_url + '</a></div>' : '');
+}
+
+async function verifyNoSite() {
+  const payload = { verified: true, has_website: false, website_quality: null, updated_at: new Date().toISOString() };
+  if (_verifyLanguage) payload.language = _verifyLanguage;
+  await _applyVerify(payload);
+  toast('✓ Pas de site — prospect à appeler', 'success');
+}
+
+async function verifySite(quality) {
+  const url = document.getElementById('verifyUrlInput').value.trim() || null;
+  const payload = { verified: true, has_website: true, website_quality: quality, website_url: url, status: 'has_website', updated_at: new Date().toISOString() };
+  if (_verifyLanguage) payload.language = _verifyLanguage;
+  await _applyVerify(payload);
+  toast('Site vérifié : ' + quality, '');
+}
+
+async function _applyVerify(payload) {
+  if (sb) {
+    await sb.from('prospects').update(payload).eq('id', _currentVerifyId);
+  } else {
+    const p = allProspects.find(x => x.id === _currentVerifyId);
+    if (p) Object.assign(p, payload);
+    localStorage.setItem('prospects', JSON.stringify(allProspects));
+  }
+  const p = allProspects.find(x => x.id === _currentVerifyId);
+  if (p) Object.assign(p, payload);
+  _verifyDone++;
+  _verifyIndex++;
+  await loadAll();
+  renderVerifyCard();
+}
+
+function verifySkip() {
+  _verifyIndex++;
+  renderVerifyCard();
 }
 
 // ══════════════════════════════════════════
